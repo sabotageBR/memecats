@@ -1,0 +1,102 @@
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url("fontes/fredoka-latin-600-normal.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url("fontes/fredoka-latin-ext-600-normal.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url("fontes/fredoka-latin-700-normal.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url("fontes/fredoka-latin-ext-700-normal.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+/* HUD em pilulas brancas sobre o fundo do gato. --acento e --placa vem do
+   gato atual (main.js). As raridades ficam em --rar nas figurinhas. */
+:root{--tinta:#2A2238;--pilula:rgba(255,255,255,.94);--acento:#FF6B57;--placa:#2E2440;--sombra:0 2px 8px rgba(20,10,40,.28);--sombra-forte:0 8px 24px rgba(20,10,40,.38)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--placa);font-family:"Fredoka",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--tinta);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavior:none}
+#cena{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hud{position:fixed;left:0;right:0;z-index:2;display:flex;align-items:center;pointer-events:none}
+.hud>*{pointer-events:auto}
+#topo{top:0;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-right,0px) + 14px) 0 calc(env(safe-area-inset-left,0px) + 14px)}
+#base{bottom:0;justify-content:center;gap:14px;padding:0 14px calc(env(safe-area-inset-bottom,0px) + 14px)}
+
+.btn{position:relative;width:56px;height:56px;border:0;border-radius:50%;padding:0;cursor:pointer;color:var(--tinta);background:var(--pilula);box-shadow:var(--sombra);display:grid;place-items:center;transition:transform .1s ease,box-shadow .1s ease,opacity .2s}
+.btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.btn:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.btn.redondo{width:48px;height:48px}
+.btn.redondo svg{width:22px;height:22px}
+.btn:focus-visible{outline:3px solid var(--acento);outline-offset:3px}
+.btn[disabled]{opacity:.4;cursor:default}
+.btn[hidden]{display:none}
+.selo{position:absolute;top:-3px;right:-3px;width:20px;height:20px;border-radius:50%;background:var(--acento);box-shadow:0 0 0 2px #fff;display:grid;place-items:center;transition:background-color .4s}
+.selo::after{content:"";margin-left:2px;border-left:7px solid #fff;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+.btn.pulsar{animation:pulsar .75s ease-in-out infinite}
+@keyframes pulsar{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+/* botao de proximo nivel na revelacao: grande, na cor do gato */
+.btn.proximo{width:72px;height:72px;color:#fff;background:var(--acento);box-shadow:0 0 0 4px #fff,var(--sombra-forte);animation:entraBotao .35s cubic-bezier(.3,1.6,.5,1)}
+.btn.proximo svg{width:34px;height:34px;stroke:none;margin-left:4px}
+.btn.proximo.pulsar{animation:pulsar .9s ease-in-out infinite}
+@keyframes entraBotao{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+
+.placa{position:relative;display:flex;align-items:baseline;gap:8px;padding:8px 18px 9px;border-radius:999px;background:var(--pilula);color:var(--tinta);box-shadow:var(--sombra);font-weight:700;font-size:22px;line-height:1;white-space:nowrap;max-width:calc(100vw - 150px);overflow:visible}
+.placa span{font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+.placa b{overflow:hidden;text-overflow:ellipsis}
+.placa.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+/* na revelacao a placa mostra a raridade e o nome do gato */
+.placa.revelado span{opacity:1;color:#fff;background:var(--rar,#8E9BB8);padding:4px 8px 3px;border-radius:999px;font-size:11px;align-self:center}
+.placa .novo{position:absolute;top:-10px;right:-8px;padding:3px 8px;border-radius:999px;background:#FF3B6B;color:#fff;font-style:normal;font-size:12px;font-weight:700;box-shadow:0 0 0 2px #fff;transform:rotate(8deg);animation:pulsar .9s ease-in-out infinite}
+.placa .novo[hidden]{display:none}
+
+/* paisagem: os botoes viram coluna a direita e a placa centra sobre a area
+   util (a coluna mede 74 px: botao 56 + 14 de borda + 4 de folga) */
+@media (orientation:landscape){
+  #base{left:auto;right:0;top:0;bottom:0;flex-direction:column;gap:14px;padding:0 calc(env(safe-area-inset-right,0px) + 14px) 0 0}
+  #topo{right:calc(74px + env(safe-area-inset-right,0px))}
+  .btn.proximo{width:60px;height:60px}
+  .aviso{left:calc(50% - 37px)}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .btn{width:48px;height:48px}
+  .btn svg{width:22px;height:22px}
+  .btn.redondo{width:42px;height:42px}
+  .btn.redondo svg{width:20px;height:20px}
+  .btn.proximo{width:52px;height:52px}
+  #base{gap:10px;padding-right:calc(env(safe-area-inset-right,0px) + 10px)}
+  #topo{padding-top:calc(env(safe-area-inset-top,0px) + 8px);right:calc(62px + env(safe-area-inset-right,0px))}
+  .placa{font-size:18px;padding:6px 14px 7px}
+  .aviso{left:calc(50% - 31px);top:calc(env(safe-area-inset-top,0px) + 58px)}
+}
+@media (max-width:380px){.btn{width:52px;height:52px}.placa{font-size:19px;padding:7px 14px 8px}}
+@media (prefers-reduced-motion:reduce){.btn.pulsar,.btn.proximo.pulsar,.placa .novo{animation:none}.btn.pulsar{box-shadow:0 0 0 4px var(--acento),var(--sombra)}.placa.pop{animation:none}}
+
+/* botao do album com anel de progresso da colecao e ponto de novidade */
+#bAlbum{--prog:0;background:radial-gradient(circle closest-side,#fff calc(100% - 3.5px),transparent calc(100% - 2.5px)),conic-gradient(var(--acento) calc(var(--prog)*1turn),rgba(255,255,255,.45) 0)}
+#bAlbum .ponto{position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:#FF3B6B;box-shadow:0 0 0 2px #fff;display:none}
+#bAlbum.novidade .ponto{display:block;animation:pulsar .9s ease-in-out infinite}
+
+/* album */
+.painel{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,10,30,.66);padding:16px}
+.painel[hidden]{display:none}
+.cartao{width:min(460px,100%);max-height:100%;overflow:auto;background:#FFFFFF;border-radius:24px;padding:14px 14px 16px;box-shadow:var(--sombra-forte)}
+.cabeca{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.cabeca h2{flex:1;margin:0 0 0 6px;font-size:22px;font-weight:700;color:var(--tinta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conta{font-weight:700;font-size:15px;color:#fff;background:var(--acento);padding:4px 10px;border-radius:999px}
+.btn.pequeno{width:40px;height:40px;box-shadow:none;background:#EEF0F4;flex:none}
+.btn.pequeno svg{width:20px;height:20px}
+.grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.grade[hidden]{display:none}
+@media (min-width:520px){.grade{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.figurinha{position:relative;min-width:0;border:0;padding:5px 5px 6px;border-radius:16px;cursor:pointer;background:var(--rar);box-shadow:0 2px 0 rgba(0,0,0,.15);display:flex;flex-direction:column;gap:4px;font:inherit}
+.figurinha canvas{width:100%;aspect-ratio:1;display:block;border-radius:11px;background:#2A2238}
+.figurinha span{font-size:12px;font-weight:700;color:#fff;line-height:1.1;text-shadow:0 1px 0 rgba(0,0,0,.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.figurinha.bloqueada{cursor:default;opacity:.75}
+.figurinha.lendario{box-shadow:0 0 0 2px #FFE58A,0 2px 10px rgba(255,176,0,.6)}
+.figurinha.nova::after{content:"";position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#FF3B6B;box-shadow:0 0 0 2px #fff}
+.palco{display:flex;flex-direction:column;align-items:center;gap:10px}
+.palco[hidden]{display:none}
+.palco canvas{width:min(100%,62vh);aspect-ratio:1;display:block;border-radius:16px;cursor:pointer;touch-action:none}
+.legenda{display:flex;align-items:center;gap:8px;font-size:22px}
+.chip{padding:4px 10px 3px;border-radius:999px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.toque{margin:0;font-size:14px;font-weight:600;opacity:.55}
+
+/* aviso curto sob a placa (toque no gato!) */
+.aviso{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);z-index:3;transform:translateX(-50%);padding:6px 14px;border-radius:999px;background:var(--pilula);color:var(--tinta);font-weight:700;font-size:15px;box-shadow:var(--sombra);white-space:nowrap;animation:entra .5s cubic-bezier(.3,1.6,.5,1);pointer-events:none}
+.aviso[hidden]{display:none}
+@keyframes entra{0%{transform:translateX(-50%) translateY(-20px) scale(.7);opacity:0}100%{transform:translateX(-50%) translateY(0) scale(1);opacity:1}}
+body.sem-anuncio .anuncio{display:none}

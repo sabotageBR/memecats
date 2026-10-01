@@ -1,0 +1,344 @@
+{
+  "_exemplo": {
+    "ferramenta": "nome e versao da ferramenta de IA (ex.: GPT-image no ChatGPT)",
+    "plano": "plano/conta usada e se permite uso comercial (confira os termos no dia)",
+    "prompt": "prompt exato usado (cena, ou gato + cenario)",
+    "data": "AAAA-MM-DD",
+    "edicoes": "o que foi editado a mao: recorte, preenchimento do fundo, correcoes"
+  },
+  "_exemplo_original": {
+    "tipo": "original",
+    "arquivo": "nome do arquivo como o usuario entregou",
+    "fonte": "de onde veio a imagem e quem e o dono, se souber",
+    "data": "AAAA-MM-DD (entrega)",
+    "edicoes": "nenhuma: arquivo copiado byte a byte"
+  },
+  "banana": {
+    "tipo": "original",
+    "arquivo": "Banana Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "4efd799d2a86c95c3ccd5c647748e9a46f018619d3de466ec36a02c355f3de19"
+  },
+  "oiia": {
+    "tipo": "original",
+    "arquivo": "Oiia Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "615b61bce41c5ff900097a2555bd334e90182bad541cf197ea5f37fb34a3e9f4"
+  },
+  "huh": {
+    "tipo": "original",
+    "arquivo": "Huh Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "bbdb452c3536f7a4f82139a93dad71270020d1a608bfffe0ace98a0509f2b706"
+  },
+  "pop": {
+    "tipo": "original",
+    "arquivo": "Pop Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "adce6a8ef1c8670f85365e37f0c053a7305d0c33351e5eea506ec39def903d07"
+  },
+  "crying": {
+    "tipo": "original",
+    "arquivo": "Crying Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "500e32b93db1c726e797413e3588fa208705bc8b9d649005462cedf0b394fd5a"
+  },
+  "happy": {
+    "tipo": "original",
+    "arquivo": "Happy Happy Happy Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "b930c64871583339ee57121c87d9da5b9e2d13f02dbf52cc754a529cae270b14"
+  },
+  "maxwell": {
+    "tipo": "original",
+    "arquivo": "Maxwell the Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "33f0f8db29886e3fb58bb0a4fad6ac35ba53d98286a24307873913de5f49eae5"
+  },
+  "vibing": {
+    "tipo": "original",
+    "arquivo": "Vibing Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "ac6b70162cd37fc590b0a642dd92cef66119f18f5d4057d48469ae25bf6295bd"
+  },
+  "side-eye": {
+    "tipo": "original",
+    "arquivo": "Side Eye Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "2e2bab68321365fb8e6640b1e558de171289d6412b0df46e8d54b1eb895330e3"
+  },
+  "polite": {
+    "tipo": "original",
+    "arquivo": "Polite Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "3183688b6bc9bff3c6cee22f739c9364403515ce06d503c6c68cfbeadf6f1522"
+  },
+  "floppa": {
+    "tipo": "original",
+    "arquivo": "Big Floppa.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "a42a28b0c2ef8b4d8de7cd81f78605274ad1a117758dd1879ecb7f764cfb987f"
+  },
+  "cucumber": {
+    "tipo": "original",
+    "arquivo": "Cat vs Cucumber.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "912f587cb8058fffbad694d80b13d001b274c6b1230f9d9082877ecef4924ef0"
+  },
+  "bingus": {
+    "tipo": "original",
+    "arquivo": "Bingus.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "50eaf17d503a2f1f7b3cd1b8ac2366390c639be8ad122bb25e927cb9d994b390"
+  },
+  "grumpy": {
+    "tipo": "original",
+    "arquivo": "Grumpy Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "0246c504209ec9e5afdbd9e333fc23497b1335aaa35ef342ea1b0928cafb1783"
+  },
+  "nyan": {
+    "tipo": "original",
+    "arquivo": "Nyan Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "e8935e4c3229dad88a1c5a764559f651ce602a1cfd96a8a66bb62ea7fc84c4d9"
+  },
+  "bongo": {
+    "tipo": "original",
+    "arquivo": "Bongo Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "f58c721d809659e7206a2b798b9cf2514ccfb4ecfd005d39b0ba71a15f1517c3"
+  },
+  "smudge": {
+    "tipo": "original",
+    "arquivo": "Woman Yelling at a Cat (Smudge).jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "54e788d37d00a7b2d554121f06cc9d2422255fe4700925197df24cecea2c5196"
+  },
+  "spaghetti": {
+    "tipo": "original",
+    "arquivo": "Spaghetti Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "1021aea6a7f7e1c748f41a3fabc5146db6462a0f15b6c2dfbb591a6b1f63178a"
+  },
+  "screaming": {
+    "tipo": "original",
+    "arquivo": "Screaming Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "8feb4b1a917a81fe795434e8555962e6ca4cf300230467c62fc3751dc7905dec"
+  },
+  "wiwiwi": {
+    "tipo": "original",
+    "arquivo": "Wi Wi Wi Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "ff5d5d84dc60a530ff69b7f22829291812804143448d72af24ed6ba39f2c4231"
+  },
+  "staring": {
+    "tipo": "original",
+    "arquivo": "Staring Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "d966fd2ff2ac7cf9f30c13f7378e472c60a8fe6b2ca6dcc740d822d75cba0c61"
+  },
+  "omg": {
+    "tipo": "original",
+    "arquivo": "OMG Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "d5b5465cf06060921bc0456ced31eb9cc1e40a2ccc9a76d7dbf28d329b46dab6"
+  },
+  "wet": {
+    "tipo": "original",
+    "arquivo": "Wet Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "f2d38899c38bd1621f3b771bf5be2a43cb671e4c5d3957035d3d4a12570f5e2f"
+  },
+  "keyboard": {
+    "tipo": "original",
+    "arquivo": "Keyboard Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "0faf995671e0459f9ffdbac763749f547afde27a1d4b05a19ce020b62b78c3f1"
+  },
+  "longcat": {
+    "tipo": "original",
+    "arquivo": "Longcat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "36d888919f75ef907a85e6b48ab16391f80913ccbad7f6fb735a231cd46b643b"
+  },
+  "heavy-breathing": {
+    "tipo": "original",
+    "arquivo": "Heavy Breathing Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "470c0829418680dd34ee9bcfa55c58305146506d5f56dc631ad9114e78346c3e"
+  },
+  "fits-sits": {
+    "tipo": "original",
+    "arquivo": "If I Fits I Sits.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "4788cbf5ba3f619c0da0707e7fe2d7ddbec3817065e7bb40921c6320e3c205ff"
+  },
+  "bread": {
+    "tipo": "original",
+    "arquivo": "Bread Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "2dd875c10517d0e841c20daeb8e9cd03cc0bb9208da56f13d25b55fd6d10a40f"
+  },
+  "breading": {
+    "tipo": "original",
+    "arquivo": "Cat Breading.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "375ff8b8bea560d88c14ce0207c6d1c258624ac2762bea9448e6d4c3dd8e5be1"
+  },
+  "ceiling": {
+    "tipo": "original",
+    "arquivo": "Ceiling Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "2b12dd07195f0ac13d75e2f174047376abb072ab257eea08e9fa78039801216f"
+  },
+  "driving": {
+    "tipo": "original",
+    "arquivo": "Driving Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "4e13b427d4e5e374b6e76be3a89caf80bfa8b9d78518a87ece402e868074b185"
+  },
+  "hipster": {
+    "tipo": "original",
+    "arquivo": "Hipster Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "4c0f74eac377a292a01e3823334140b06cd160598fab4625d19e8310a226aeef"
+  },
+  "boat": {
+    "tipo": "original",
+    "arquivo": "I Should Buy a Boat Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "c135d9573eb001aeef3f85c7f1f60e1ea843b47bee5c16ee0b249a44304f5c64"
+  },
+  "business": {
+    "tipo": "original",
+    "arquivo": "Business Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "49b9a6c6b5b48429c33511bf152be32ae285ca8245e370b299510e6a8445da7f"
+  },
+  "pusheen": {
+    "tipo": "original",
+    "arquivo": "Pusheen.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "291d7bc6a289f6c6ee5e0476682553aa3e6a5f7834c49232dac27060303a3153"
+  },
+  "maru": {
+    "tipo": "original",
+    "arquivo": "Maru.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "61617784318f062bea6452d873ea7ba9e8f77e0e7b687de06ccd65b1bb863e5c"
+  },
+  "lil-bub": {
+    "tipo": "original",
+    "arquivo": "Lil Bub.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "aeab467a3b77ef288a7b8755c3721a7b484f39f8785983d81fad75d86e1f5530"
+  },
+  "monorail": {
+    "tipo": "original",
+    "arquivo": "Monorail Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "46975d1ea40e500926b3d31e97002c5f825927047689d7134215b2d08d8900a5"
+  },
+  "sockington": {
+    "tipo": "original",
+    "arquivo": "Sockington.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "29db560e9ab57d4e6e33cd1d1f5f3443a9f13428e3ee33c8010457c327a0073e"
+  },
+  "venus": {
+    "tipo": "original",
+    "arquivo": "Venus.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "b6c5e0bc5dcea7a828653f0a49a7253c35a9668818a7fa961b37bb15539bf983"
+  },
+  "german": {
+    "tipo": "original",
+    "arquivo": "German Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "3fa6fbf2d76cb2cafa93b1ed0776a12ff332c127da0a0d5e9419bd3255c0453b"
+  }
+}

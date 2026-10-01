@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Meme Cats Puzzle</title>
+<link rel="preload" href="src/ui/fontes/fredoka-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="src/ui/estilo.css">
+<!-- Unico script externo permitido pela Poki. -->
+<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+</head>
+<body>
+<canvas id="cena"></canvas>
+<div id="topo" class="hud">
+  <button id="bSom" class="btn redondo" aria-label="Sound">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ligado" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" stroke="none"/><path class="ligado" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.6 7.6 0 0 1 0 11"/><path class="desligado" d="M15.5 9.5l5 5M20.5 9.5l-5 5" style="display:none"/></svg>
+  </button>
+  <div id="placa" class="placa"><span id="placaRotulo">Level</span><b id="placaNum">1</b><i id="placaNovo" class="novo" hidden>New!</i></div>
+  <button id="bAlbum" class="btn redondo" aria-label="Cat album">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><path d="M14.2 14.6l1.2-1.4 1.2 1.4M17.4 14.6l1.2-1.4 1.2 1.4"/><path d="M14 17.2c.8 1.6 4.8 1.6 5.6 0"/></svg>
+    <i class="ponto" aria-hidden="true"></i>
+  </button>
+</div>
+<div id="base" class="hud">
+  <button id="bEspiar" class="btn" aria-label="Peek">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>
+  </button>
+  <button id="bDica" class="btn anuncio" aria-label="Hint">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 17.5h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.2h5c0-.8.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></svg>
+    <i class="selo" aria-hidden="true"></i>
+  </button>
+  <button id="bProximo" class="btn proximo" aria-label="Next" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>
+  </button>
+</div>
+<div id="aviso" class="aviso" hidden></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

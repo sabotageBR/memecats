@@ -1,0 +1,14 @@
+{
+  "name": "meme-cats-puzzle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Meme Cats Puzzle: quebra-cabeca de troca com gatos de meme para a Poki (HTML + JavaScript puro).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "servir": "node tools/servir.mjs",
+    "arte": "node tools/arte.mjs",
+    "sdkcheck": "node tools/sdkcheck.mjs",
+    "poki": "node --test test/*.test.js && node tools/empacotar.mjs && node tools/sdkcheck.mjs dist/ && node tools/prints-build.mjs"
+  }
+}
