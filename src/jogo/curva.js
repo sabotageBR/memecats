@@ -12,7 +12,7 @@ export const CURVA = Object.freeze([
   [16, 4, 5],
   [24, 5, 5],
   [33, 5, 6],
-  [41, 6, 6],
+  [38, 6, 6],
 ]);
 
 /** Depois do ultimo gato (variantes), a grade gira entre estes tamanhos. */

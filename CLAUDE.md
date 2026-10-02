@@ -12,7 +12,7 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
 - **Sem derrota e sem cronômetro.**
   - **Espiar:** uma vez por nível, mostra a imagem inteira por 2 s.
   - **Dica:** vídeo recompensado que coloca uma peça certa.
-- **Curva** (`src/jogo/curva.js`): 2x2 (tutorial com a mão), 3x3, 3x4, 4x4, 4x5, 5x5, 5x6 e 6x6. Do nível 42 em diante, os gatos voltam como variantes, com a grade girando entre 5x5, 5x6 e 6x6.
+- **Curva** (`src/jogo/curva.js`): 2x2 (tutorial com a mão), 3x3, 3x4, 4x4, 4x5, 5x5, 5x6 e 6x6. Do nível 39 em diante, os gatos voltam como variantes, com a grade girando entre 5x5, 5x6 e 6x6.
 - **Imagem retangular:** o quadro tem a proporção da imagem, sem corte. `gradeParaImagem` troca a grade da curva por uma com quase o mesmo número de peças e peças perto de quadradas (até 8x8). Uma foto 16:9 no nível 10, por exemplo, vira 5x3.
 - **Peças iguais** (`src/jogo/iguais.js`): áreas lisas da foto (parede branca, fundo verde, tarja preta) viram peças que ninguém distingue. Peças que parecem iguais formam uma classe e travam em qualquer célula da classe; parte delas já começa travada.
 
@@ -21,7 +21,7 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
   - `tabuleiro.js`: `pos[celula] = peca`, `classe` opcional, trocar, travar, `dica`, `colada`;
   - `curva.js`: `grade` e `gradeParaImagem`;
   - `iguais.js`: classes de peças iguais a partir da imagem reduzida;
-  - `catalogo.js`: os 41 gatos, com nomes EN/PT/ES, raridade, `reacao`, `cor`, `olhos` e `fala`.
+  - `catalogo.js`: os 38 gatos, com nomes EN/PT/ES, raridade, `reacao`, `cor`, `olhos` e `fala`.
 - **`src/render/`:**
   - `layout.js`: geometria pura;
   - `cena.js`: moldura, peças com tween e cola, seleção, arrasto, mão, espiada e revelação;
@@ -57,7 +57,7 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
 - **Toda proposta visual vai como imagem ou protótipo jogável**, nunca como descrição (preferência do usuário vinda do colortrain).
 
 ## Arte
-- **Estado atual (2026-10-01):** os 41 gatos usam as **imagens originais dos memes**, entregues pelo usuário em `~/Downloads/memes-cat-final` com o pedido de não alterar nada. Cada uma está em `arte/bruto/<id>/imagem.jpg`, registrada em `arte/origem.json` com `"tipo": "original"`, o nome do arquivo e o sha256. O jogo recebe o arquivo copiado byte a byte: sem corte, sem recompressão, sem tirar texto ou marca. A única coisa derivada é a `mini.webp` do álbum, com a imagem inteira.
+- **Estado atual (2026-10-01):** os 38 gatos usam as **imagens originais dos memes**, entregues pelo usuário em `~/Downloads/memes-cat-final` com o pedido de não alterar nada. Cada uma está em `arte/bruto/<id>/imagem.jpg`, registrada em `arte/origem.json` com `"tipo": "original"`, o nome do arquivo e o sha256. O jogo recebe o arquivo copiado byte a byte: sem corte, sem recompressão, sem tirar texto ou marca. A única coisa derivada é a `mini.webp` do álbum, com a imagem inteira.
 - **Risco aberto, decisão do usuário:** essas imagens são fotos e artes de terceiros sem licença verificada.
   - A Poki recusa IP sem licença.
   - Há marcas registradas: Grumpy Cat, Nyan Cat, Pusheen e Keyboard Cat.

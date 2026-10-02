@@ -44,8 +44,8 @@ test('semente por nivel e estavel e distinta', () => {
   assert.equal(vistas.size, 300);
 });
 
-test('catalogo: 41 gatos com id unico, nomes nos 3 idiomas, reacao e raridade validas', () => {
-  assert.equal(CATALOGO.length, 41);
+test('catalogo: 38 gatos com id unico, nomes nos 3 idiomas, reacao e raridade validas', () => {
+  assert.equal(CATALOGO.length, 38);
   const ids = new Set();
   for (const g of CATALOGO) {
     assert.match(g.id, /^[a-z0-9-]+$/);
@@ -64,10 +64,10 @@ test('catalogo: 41 gatos com id unico, nomes nos 3 idiomas, reacao e raridade va
 test('gato do nivel: um por nivel e variantes depois do ultimo', () => {
   assert.equal(gatoDoNivel(1).gato.id, 'banana');
   assert.equal(gatoDoNivel(2).gato.id, 'oiia');
-  assert.equal(gatoDoNivel(41).gato.id, 'german');
-  assert.equal(gatoDoNivel(41).variante, 0);
-  assert.equal(gatoDoNivel(42).gato.id, 'banana');
-  assert.equal(gatoDoNivel(42).variante, 1);
+  assert.equal(gatoDoNivel(38).gato.id, 'german');
+  assert.equal(gatoDoNivel(38).variante, 0);
+  assert.equal(gatoDoNivel(39).gato.id, 'banana');
+  assert.equal(gatoDoNivel(39).variante, 1);
   assert.equal(gatoDoNivel(83).variante, 2);
   assert.equal(gatoPorId('nyan')?.raridade, 'lendario');
   assert.equal(gatoPorId('nada'), null);

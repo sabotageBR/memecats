@@ -37,14 +37,6 @@
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "bbdb452c3536f7a4f82139a93dad71270020d1a608bfffe0ace98a0509f2b706"
   },
-  "pop": {
-    "tipo": "original",
-    "arquivo": "Pop Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "adce6a8ef1c8670f85365e37f0c053a7305d0c33351e5eea506ec39def903d07"
-  },
   "crying": {
     "tipo": "original",
     "arquivo": "Crying Cat.jpg",
@@ -53,14 +45,6 @@
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "500e32b93db1c726e797413e3588fa208705bc8b9d649005462cedf0b394fd5a"
   },
-  "happy": {
-    "tipo": "original",
-    "arquivo": "Happy Happy Happy Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "b930c64871583339ee57121c87d9da5b9e2d13f02dbf52cc754a529cae270b14"
-  },
   "maxwell": {
     "tipo": "original",
     "arquivo": "Maxwell the Cat.jpg",
@@ -68,14 +52,6 @@
     "data": "2026-10-01",
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "33f0f8db29886e3fb58bb0a4fad6ac35ba53d98286a24307873913de5f49eae5"
-  },
-  "vibing": {
-    "tipo": "original",
-    "arquivo": "Vibing Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "ac6b70162cd37fc590b0a642dd92cef66119f18f5d4057d48469ae25bf6295bd"
   },
   "side-eye": {
     "tipo": "original",
