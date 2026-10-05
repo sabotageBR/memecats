@@ -38,6 +38,8 @@ const NIVEIS_SEM_INTERVALO = 3;
 const ESPIADA_MS = 2000;
 /** O botao de proximo aparece depois que a reacao comeca. */
 const PROXIMO_MS = 900;
+/** Depois da reacao, o botao de proximo conta 3, 2, 1 e passa sozinho. */
+const CONTAGEM = 3;
 /** Pixels por peca na amostra que acha pecas iguais (jogo/iguais.js). */
 const AMOSTRA = 24;
 
@@ -73,6 +75,8 @@ const J = {
   dicas: 0,
   /** travas seguidas (o som sobe) */
   seq: 0,
+  /** contador do proximo: 0 nao comecou, -1 parado pelo jogador, >0 id do que esta correndo */
+  conta: 0,
   /** ms entre trocas do jogador automatico (0 = desligado) */
   auto: dep.auto,
 };
@@ -270,6 +274,7 @@ function executar(a, b) {
 function completar() {
   J.fase = 'revelando';
   J.toque = null;
+  J.conta = 0;
   poki.measure('level', String(J.nivel), 'complete');
   poki.gameplayStop();
   const novo = !save.gatos.includes(J.gato.id);
@@ -285,13 +290,58 @@ function completar() {
   depois(ms + PROXIMO_MS, () => {
     const b = $('bProximo');
     b.hidden = false;
-    b.classList.remove('pulsar');
+    b.classList.remove('pulsar', 'contando');
   });
   depois(ms + dur + 300, () => {
     avisar(T.repetir, 2600);
-    $('bProximo').classList.add('pulsar');
+    contar();
   });
   if (J.auto) depois(ms + Math.min(dur, 900), proximo);
+}
+
+let contagens = 0;
+
+/**
+ * O botao de proximo conta 3, 2, 1 e passa de nivel sozinho. Nao comeca se o
+ * jogador ja mexeu no gato (ou abriu o album, ou saiu da aba): ai o botao so
+ * pulsa, como antes.
+ */
+function contar() {
+  const b = $('bProximo');
+  if (J.fase !== 'revelando' || J.conta < 0 || J.auto || album.aberta || document.hidden) {
+    b.classList.add('pulsar');
+    return;
+  }
+  const id = ++contagens;
+  J.conta = id;
+  b.classList.remove('pulsar');
+  b.classList.add('contando');
+  const num = $('contaNum');
+  const passo = (/** @type {number} */ n) => {
+    if (J.conta !== id || J.fase !== 'revelando') return;
+    if (n === 0) {
+      proximo();
+      return;
+    }
+    num.textContent = String(n);
+    // reinicia o pulo do numero
+    num.classList.remove('pop');
+    void num.offsetWidth;
+    num.classList.add('pop');
+    audio.tique();
+    depois(1000, () => passo(n - 1));
+  };
+  passo(CONTAGEM);
+}
+
+/** O jogador mexeu depois de montar: o contador para e o botao volta a pulsar. */
+function pararContagem() {
+  if (J.fase !== 'revelando') return;
+  const contava = J.conta > 0;
+  J.conta = -1;
+  const b = $('bProximo');
+  b.classList.remove('contando');
+  if (contava) b.classList.add('pulsar');
 }
 
 async function proximo() {
@@ -358,6 +408,7 @@ const album = criarAlbum({
   textos: T,
   idioma,
   aoAbrir() {
+    pararContagem();
     poki.gameplayStop();
     save.vistos = save.gatos.length;
     salvar();
@@ -390,7 +441,9 @@ canvas.addEventListener('pointerdown', (e) => {
   audio.iniciar();
   const p = ponto(e);
   if (J.fase === 'revelando') {
-    if (cena.noQuadro(p.x, p.y) && cena.reagir(agora())) {
+    if (!cena.noQuadro(p.x, p.y)) return;
+    pararContagem();
+    if (cena.reagir(agora())) {
       audio.reagir(J.gato.reacao);
       $('aviso').hidden = true;
     }
@@ -495,7 +548,11 @@ $('bAlbum').addEventListener('click', () => {
 });
 
 // som para quando a aba some (a Poki cobra isso)
-document.addEventListener('visibilitychange', () => audio.pausarAba(document.hidden));
+document.addEventListener('visibilitychange', () => {
+  audio.pausarAba(document.hidden);
+  // o contador nao passa de nivel com a aba escondida
+  if (document.hidden) pararContagem();
+});
 
 // --------------------------------------------------------------- quadro
 function quadro() {
