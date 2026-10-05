@@ -6,8 +6,6 @@
 /** @type {Readonly<Record<string, { arq: string, gato: boolean }>>} */
 export const COM_ARTE = Object.freeze({
   banana: { arq: 'imagem.jpg', gato: false },
-  oiia: { arq: 'imagem.jpg', gato: false },
-  huh: { arq: 'imagem.jpg', gato: false },
   crying: { arq: 'imagem.jpg', gato: false },
   maxwell: { arq: 'imagem.jpg', gato: false },
   'side-eye': { arq: 'imagem.jpg', gato: false },
@@ -21,9 +19,7 @@ export const COM_ARTE = Object.freeze({
   smudge: { arq: 'imagem.jpg', gato: false },
   spaghetti: { arq: 'imagem.jpg', gato: false },
   screaming: { arq: 'imagem.jpg', gato: false },
-  wiwiwi: { arq: 'imagem.jpg', gato: false },
   staring: { arq: 'imagem.jpg', gato: false },
-  omg: { arq: 'imagem.jpg', gato: false },
   wet: { arq: 'imagem.jpg', gato: false },
   keyboard: { arq: 'imagem.jpg', gato: false },
   longcat: { arq: 'imagem.jpg', gato: false },

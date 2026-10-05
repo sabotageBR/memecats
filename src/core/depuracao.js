@@ -1,7 +1,7 @@
 // Parametros de teste na URL. So valem em file://, localhost e 127.0.0.1:
 // na Poki nada disso existe. Unico modulo que le a URL.
 //   ?nivel=12   comeca no nivel 12
-//   ?gato=oiia  troca o gato do nivel (ids em src/jogo/catalogo.js)
+//   ?gato=crying troca o gato do nivel (ids em src/jogo/catalogo.js)
 //   ?auto=400   joga sozinho (uma troca a cada 400 ms) e passa de nivel
 //   ?fixo       sem a animacao de entrada (mostra e ja embaralha)
 //   ?semanuncio nao pede intervalo comercial (prints e testes longos)

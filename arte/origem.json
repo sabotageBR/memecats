@@ -21,22 +21,6 @@
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "4efd799d2a86c95c3ccd5c647748e9a46f018619d3de466ec36a02c355f3de19"
   },
-  "oiia": {
-    "tipo": "original",
-    "arquivo": "Oiia Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "615b61bce41c5ff900097a2555bd334e90182bad541cf197ea5f37fb34a3e9f4"
-  },
-  "huh": {
-    "tipo": "original",
-    "arquivo": "Huh Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "bbdb452c3536f7a4f82139a93dad71270020d1a608bfffe0ace98a0509f2b706"
-  },
   "crying": {
     "tipo": "original",
     "arquivo": "Crying Cat.jpg",
@@ -141,14 +125,6 @@
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "8feb4b1a917a81fe795434e8555962e6ca4cf300230467c62fc3751dc7905dec"
   },
-  "wiwiwi": {
-    "tipo": "original",
-    "arquivo": "Wi Wi Wi Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "ff5d5d84dc60a530ff69b7f22829291812804143448d72af24ed6ba39f2c4231"
-  },
   "staring": {
     "tipo": "original",
     "arquivo": "Staring Cat.jpg",
@@ -156,14 +132,6 @@
     "data": "2026-10-01",
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "d966fd2ff2ac7cf9f30c13f7378e472c60a8fe6b2ca6dcc740d822d75cba0c61"
-  },
-  "omg": {
-    "tipo": "original",
-    "arquivo": "OMG Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "d5b5465cf06060921bc0456ced31eb9cc1e40a2ccc9a76d7dbf28d329b46dab6"
   },
   "wet": {
     "tipo": "original",

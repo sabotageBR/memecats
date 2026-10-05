@@ -16,7 +16,7 @@
 //    sem tirar texto), mais a mini.webp com a imagem inteira para o album.
 //    Registro: arquivo, fonte, data, edicoes (e sha256, conferido se houver).
 //
-// Uso: node tools/arte.mjs [--so=banana,oiia]
+// Uso: node tools/arte.mjs [--so=banana,crying]
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { extname, join, relative } from 'node:path';

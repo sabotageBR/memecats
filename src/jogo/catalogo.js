@@ -38,8 +38,6 @@ const g = (id, en, pt, es, raridade, reacao, cor, fala = '', olhos = OLHOS) => (
 /** @type {readonly Gato[]} na ordem dos niveis: os mais famosos primeiro */
 export const CATALOGO = Object.freeze([
   g('banana', 'Banana Cat', 'Gato Banana', 'Gato Plátano', 'lendario', 'chorar', '#F2C230', 'BUAAA', [[0.19, 0.45], [0.3, 0.45]]),
-  g('oiia', 'OIIA Cat', 'Gato OIIA', 'Gato OIIA', 'lendario', 'girar', '#1E9E4A', 'OIIA'),
-  g('huh', 'Huh Cat', 'Gato Hã?', 'Gato ¿Eh?', 'epico', 'susto', '#B07A5A', 'HUH?'),
   g('crying', 'Crying Cat', 'Gato Chorando', 'Gato Llorando', 'raro', 'chorar', '#7C8CA8', '', [[0.39, 0.36], [0.6, 0.36]]),
   g('maxwell', 'Maxwell the Cat', 'Maxwell, o Gato', 'Maxwell el Gato', 'lendario', 'girar', '#6C7A99'),
   g('side-eye', 'Side Eye Cat', 'Gato de Lado', 'Gato de Reojo', 'raro', 'susto', '#2DBE3A', '...'),
@@ -53,9 +51,7 @@ export const CATALOGO = Object.freeze([
   g('smudge', 'Smudge the Cat', 'Gato Smudge', 'Gato Smudge', 'epico', 'susto', '#C0697A', '?!'),
   g('spaghetti', 'Spaghetti Cat', 'Gato do Espaguete', 'Gato Espagueti', 'raro', 'pular', '#E07B3C', 'NOM'),
   g('screaming', 'Screaming Cat', 'Gato Gritando', 'Gato Gritando', 'raro', 'susto', '#8C6A5A', 'AAAH!'),
-  g('wiwiwi', 'Wi Wi Wi Cat', 'Gato Wi Wi Wi', 'Gato Wi Wi Wi', 'raro', 'dancar', '#9B6FB5', 'WI WI WI'),
   g('staring', 'Staring Cat', 'Gato Encarando', 'Gato Mirando', 'raro', 'pop', '#8A8E96'),
-  g('omg', 'OMG Cat', 'Gato OMG', 'Gato OMG', 'raro', 'susto', '#7A8496', 'OMG!'),
   g('wet', 'Wet Cat', 'Gato Molhado', 'Gato Mojado', 'comum', 'chorar', '#7A6A60', '', [[0.37, 0.35], [0.67, 0.26]]),
   g('keyboard', 'Keyboard Cat', 'Gato Tecladista', 'Gato Teclado', 'epico', 'dancar', '#3CB4C8', '♪'),
   g('longcat', 'Longcat', 'Gato Comprido', 'Gato Largo', 'epico', 'pular', '#6E88AD', 'LOOONG'),
