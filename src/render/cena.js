@@ -36,7 +36,7 @@ const lim = (/** @type {number} */ k) => (k < 0 ? 0 : k > 1 ? 1 : k);
  * lados vizinhos tem recuo (onde ha cola o canto fica reto e some a borda).
  * @param {CanvasRenderingContext2D} c
  */
-function caminhoPeca(c, x, y, w, h, l, t, r, b, raio) {
+export function caminhoPeca(c, x, y, w, h, l, t, r, b, raio) {
   const x0 = x + l;
   const y0 = y + t;
   const x1 = x + w - r;
@@ -65,7 +65,7 @@ function retArred(c, x, y, w, h, r) {
 }
 
 /** Mao de desenho animado apontando (ponta do dedo em 0,0). @param {CanvasRenderingContext2D} c @param {number} s */
-function desenharMao(c, x, y, s, alfa, aperto) {
+export function desenharMao(c, x, y, s, alfa, aperto) {
   c.save();
   c.globalAlpha = alfa;
   c.translate(x, y);

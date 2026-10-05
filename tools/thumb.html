@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>thumb</title>
+<style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block;width:100vw;height:100vh}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+// Thumb da Poki com tres gatos: um protagonista e dois de apoio.
+// Regras (developers.poki.com/guide/game-thumbnail): 1:1, sangrada, sem texto,
+// um objeto principal (nao colagem), sugerir movimento, fundo simples,
+// contraste com o fundo #83FFE7 do site, legivel tambem nos tiles pequenos.
+//   a: partida com o Polite (tabuleiro, peca no ar presa pela mao) e Crying e
+//      Smudge como figurinhas do album nos cantos;
+//   b: a troca: tres pecas grandes, o Polite na mao trocando com o Crying;
+//   c: a mesma partida da a, com o Crying de protagonista.
+// As fotos vem pelo manifesto (imagensDoGato), entao a arte de IA entra sozinha
+// quando substituir as originais. Foto que falhar pinta a tela de vermelho.
+// ?opcao=a|b|c (tamanho = ?s=, padrao 628)
+import { caminhoPeca, desenharMao } from '../src/render/cena.js';
+import { imagensDoGato } from '../src/render/imagens.js';
+import { misturar } from '../src/render/provisorio.js';
+import { gatoPorId } from '../src/jogo/catalogo.js';
+import { COR_RARIDADE } from '../src/ui/album.js';
+
+const q = new URLSearchParams(location.search);
+const opcao = q.get('opcao') || 'a';
+const S = Math.max(64, parseInt(q.get('s') || '628', 10));
+const V = 628;
+const TAU = Math.PI * 2;
+const TINTA = '#2A2238';
+
+const cv = /** @type {HTMLCanvasElement} */ (document.getElementById('c'));
+cv.width = S;
+cv.height = S;
+const ctx = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d'));
+ctx.setTransform(S / V, 0, 0, S / V, 0, 0);
+ctx.imageSmoothingQuality = 'high';
+
+// recorte quadrado em volta do rosto, em pixels da foto original
+const RECORTE = {
+  polite: { x: 175, y: 0, s: 450 },
+  crying: { x: 230, y: 0, s: 324 },
+  smudge: { x: 250, y: 50, s: 380 },
+};
+// olhos dentro do recorte (0..1), para lagrimas e brilhos
+const OLHOS = {
+  polite: [[0.3, 0.46], [0.69, 0.48]],
+  crying: [[0.25, 0.5], [0.77, 0.5]],
+  smudge: [[0.37, 0.47], [0.65, 0.41]],
+};
+
+const ret = (c, x, y, w, h, r) => caminhoPeca(c, x, y, w, h, 1e-6, 1e-6, 1e-6, 1e-6, r);
+
+/** @param {string} id */
+async function carregar(id) {
+  const g = /** @type {import('../src/jogo/catalogo.js').Gato} */ (gatoPorId(id));
+  const im = await imagensDoGato(g);
+  return { id, g, im, r: RECORTE[id] };
+}
+
+// ---------------------------------------------------------------- fundo
+/** Raios de sol a partir de (cx, cy) e patinhas leves, como o fundo do jogo. */
+function fundo(cores, cx, cy) {
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, V * 0.85);
+  g.addColorStop(0, cores[0]);
+  g.addColorStop(0.45, cores[1]);
+  g.addColorStop(1, cores[2]);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, V, V);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = 'rgba(255,255,255,.07)';
+  const n = 18;
+  for (let i = 0; i < n; i += 2) {
+    const a0 = (i / n) * TAU;
+    const a1 = ((i + 1) / n) * TAU;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, V * 1.2, a0, a1);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+  ctx.fillStyle = 'rgba(255,255,255,.06)';
+  const passo = 92;
+  for (let y = 0, i = 0; y < V + passo; y += passo, i++) {
+    for (let x = (i % 2) * passo * 0.5; x < V + passo; x += passo) {
+      const r = passo * 0.09;
+      ctx.beginPath();
+      ctx.ellipse(x, y + r * 0.4, r * 0.8, r * 0.65, 0, 0, TAU);
+      for (let k = -1; k <= 1; k++) ctx.ellipse(x + k * r * 0.65, y - r * 0.55 - (k ? 0 : r * 0.2), r * 0.3, r * 0.36, 0, 0, TAU);
+      ctx.fill();
+    }
+  }
+}
+
+// ---------------------------------------------------------------- pecas
+/** Desenha o pedaco (col, lin) de uma grade n x n do recorte do gato. */
+function pedaco(gato, n, p, x, y, w, h) {
+  const { r, im } = gato;
+  const lado = r.s / n;
+  ctx.drawImage(im.composta, r.x + (p % n) * lado, r.y + Math.floor(p / n) * lado, lado, lado, x, y, w, h);
+}
+
+/** Peca solta (com borda branca e sombra), centrada em (cx, cy). */
+function pecaSolta(gato, n, p, cx, cy, lado, rot, op = {}) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  const x = -lado / 2;
+  const y = -lado / 2;
+  const raio = lado * 0.1;
+  ctx.save();
+  ctx.shadowColor = 'rgba(20,10,40,.45)';
+  ctx.shadowBlur = lado * (op.alto ? 0.22 : 0.08);
+  ctx.shadowOffsetY = lado * (op.alto ? 0.14 : 0.04);
+  ret(ctx, x, y, lado, lado, raio);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+  ctx.restore();
+  ret(ctx, x, y, lado, lado, raio);
+  ctx.save();
+  ctx.clip();
+  if (n) pedaco(gato, n, p, x, y, lado, lado);
+  else pedaco(gato, 1, 0, x, y, lado, lado);
+  ctx.restore();
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = op.contorno || Math.max(2, lado * 0.035);
+  ret(ctx, x, y, lado, lado, raio);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Tabuleiro n x n no meio de uma partida: as pecas certas coladas, a celula de
+ * origem vazia (a peca esta na mao) e o alvo com a peca errada e o tracejado.
+ * Devolve a funcao que leva um ponto do tabuleiro (0..1) para a tela.
+ */
+function tabuleiro(gato, o) {
+  const { cx, cy, lado, rot, n, origem, alvo } = o;
+  const borda = lado * 0.035;
+  const ix = -lado / 2 + borda;
+  const iy = -lado / 2 + borda;
+  const il = lado - borda * 2;
+  const cel = il / n;
+  const g = Math.max(1.5, lado * 0.006);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ctx.save();
+  ctx.shadowColor = 'rgba(20,10,40,.45)';
+  ctx.shadowBlur = borda * 4;
+  ctx.shadowOffsetY = borda * 1.4;
+  ret(ctx, -lado / 2, -lado / 2, lado, lado, borda * 1.8);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+  ctx.restore();
+  ret(ctx, ix, iy, il, il, borda * 0.9);
+  ctx.fillStyle = misturar(gato.g.cor, TINTA, 0.55);
+  ctx.fill();
+  // as pecas certas estao coladas: a imagem vai inteira, recuada so na borda,
+  // e as celulas fora do lugar viram buraco (assim nao sobra emenda)
+  ctx.save();
+  ret(ctx, ix + g, iy + g, il - g * 2, il - g * 2, cel * 0.1);
+  ctx.clip();
+  pedaco(gato, 1, 0, ix, iy, il, il);
+  ctx.fillStyle = misturar(gato.g.cor, TINTA, 0.55);
+  for (const c of [origem, alvo]) {
+    if (c < 0) continue;
+    ctx.fillRect(ix + (c % n) * cel - g, iy + Math.floor(c / n) * cel - g, cel + g * 2, cel + g * 2);
+  }
+  ctx.restore();
+  // alvo: a peca da origem esta ali (errada), com o tracejado do arrasto
+  if (alvo >= 0) {
+    const x = ix + (alvo % n) * cel;
+    const y = iy + Math.floor(alvo / n) * cel;
+    caminhoPeca(ctx, x, y + 2, cel, cel, g, g, g, g, cel * 0.1);
+    ctx.fillStyle = 'rgba(20,10,40,.22)';
+    ctx.fill();
+    caminhoPeca(ctx, x, y, cel, cel, g, g, g, g, cel * 0.1);
+    ctx.save();
+    ctx.clip();
+    pedaco(gato, n, origem, x, y, cel, cel);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,.55)';
+    ctx.lineWidth = g * 0.7;
+    ctx.stroke();
+    ctx.save();
+    ret(ctx, x + 3, y + 3, cel - 6, cel - 6, cel * 0.1);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = Math.max(3, lado * 0.012);
+    ctx.setLineDash([cel * 0.12, cel * 0.08]);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+  const cos = Math.cos(rot);
+  const sen = Math.sin(rot);
+  return {
+    cel,
+    /** centro da celula c na tela */
+    centro(c) {
+      const lx = ix + ((c % n) + 0.5) * cel;
+      const ly = iy + (Math.floor(c / n) + 0.5) * cel;
+      return { x: cx + lx * cos - ly * sen, y: cy + lx * sen + ly * cos };
+    },
+    /** ponto (u, v) 0..1 da imagem na tela */
+    ponto(u, v) {
+      const lx = ix + u * il;
+      const ly = iy + v * il;
+      return { x: cx + lx * cos - ly * sen, y: cy + lx * sen + ly * cos };
+    },
+  };
+}
+
+/** Figurinha do album: cartao na cor da raridade, foto com canto arredondado. */
+function figurinha(gato, cx, cy, lado, rot) {
+  const pad = lado * 0.05;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ctx.save();
+  ctx.shadowColor = 'rgba(20,10,40,.5)';
+  ctx.shadowBlur = lado * 0.12;
+  ctx.shadowOffsetY = lado * 0.05;
+  ret(ctx, -lado / 2 - pad * 0.7, -lado / 2 - pad * 0.7, lado + pad * 1.4, lado + pad * 1.4, lado * 0.16);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+  ctx.restore();
+  ret(ctx, -lado / 2, -lado / 2, lado, lado, lado * 0.13);
+  ctx.fillStyle = COR_RARIDADE[gato.g.raridade];
+  ctx.fill();
+  const f = lado - pad * 2;
+  ret(ctx, -f / 2, -f / 2, f, f, lado * 0.09);
+  ctx.save();
+  ctx.clip();
+  pedaco(gato, 1, 0, -f / 2, -f / 2, f, f);
+  ctx.restore();
+  ctx.restore();
+  const cos = Math.cos(rot);
+  const sen = Math.sin(rot);
+  return {
+    ponto(u, v) {
+      const lx = -f / 2 + u * f;
+      const ly = -f / 2 + v * f;
+      return { x: cx + lx * cos - ly * sen, y: cy + lx * sen + ly * cos };
+    },
+  };
+}
+
+// ---------------------------------------------------------------- particulas
+function estrela(x, y, r, cor) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * TAU - Math.PI / 2;
+    const d = i % 2 ? r * 0.28 : r;
+    ctx.lineTo(Math.cos(a) * d, Math.sin(a) * d);
+  }
+  ctx.closePath();
+  ctx.fillStyle = cor;
+  ctx.fill();
+  ctx.restore();
+}
+
+function gota(x, y, r, rot = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 1.7);
+  ctx.bezierCurveTo(r * 0.9, -r * 0.4, r, r * 0.2, r, r * 0.35);
+  ctx.arc(0, r * 0.35, r, 0, Math.PI);
+  ctx.bezierCurveTo(-r, r * 0.2, -r * 0.9, -r * 0.4, 0, -r * 1.7);
+  ctx.closePath();
+  ctx.fillStyle = '#4FC3FF';
+  ctx.fill();
+  ctx.lineWidth = r * 0.28;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(-r * 0.35, 0, r * 0.22, r * 0.4, 0.3, 0, TAU);
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Lagrimas escorrendo dos olhos para baixo. */
+function lagrimas(olhos, r) {
+  olhos.forEach((o, i) => {
+    const lado = i ? 1 : -1;
+    gota(o.x + lado * r * 0.6, o.y + r * 2.6, r * 0.9, -lado * 0.2);
+    gota(o.x + lado * r * 1.8, o.y + r * 5.2, r * 1.1, -lado * 0.35);
+  });
+}
+
+/** Linhas de velocidade atras de um objeto que vai na direcao (dx, dy). */
+function rastro(x, y, dx, dy, comp, n = 3) {
+  const m = Math.hypot(dx, dy) || 1;
+  const ux = dx / m;
+  const uy = dy / m;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.85)';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 6;
+  for (let i = 0; i < n; i++) {
+    const off = (i - (n - 1) / 2) * 30;
+    const sx = x - ux * comp * (0.55 + (i % 2) * 0.15) - uy * off;
+    const sy = y - uy * comp * (0.55 + (i % 2) * 0.15) + ux * off;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx - ux * comp * 0.45, sy - uy * comp * 0.45);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Tracejado da origem ate a peca (o rastro da mao no tutorial). */
+function tracejado(a, b) {
+  ctx.save();
+  ctx.setLineDash([8, 12]);
+  ctx.strokeStyle = 'rgba(255,255,255,.8)';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------- composicoes
+/** Celula da grade n x n onde cai o ponto (u, v) da imagem. */
+const celulaDe = (n, u, v) => Math.floor(v * n) * n + Math.floor(u * n);
+
+/**
+ * Partida: o tabuleiro do protagonista com a peca do olho na mao (saiu da
+ * origem e vai para o alvo), e os outros dois como figurinhas nos cantos.
+ */
+function partida(heroi, apoio, k) {
+  fundo(k.cores, k.sol[0], k.sol[1]);
+  const { n, origem, alvo } = k.tab;
+  const t = tabuleiro(heroi, k.tab);
+  const olhos = OLHOS[heroi.id];
+  if (heroi.id === 'crying') {
+    lagrimas(olhos.filter(([u, v]) => celulaDe(n, u, v) !== alvo).map(([u, v]) => t.ponto(u, v)), 9);
+  }
+  apoio.forEach((a, i) => desenharApoio(a, k.figs[i]));
+  const de = t.centro(origem);
+  const pc = { x: k.peca[0], y: k.peca[1] };
+  const lado = t.cel * k.peca[2];
+  const rot = k.peca[3];
+  tracejado(de, pc);
+  pecaSolta(heroi, n, alvo, pc.x, pc.y, lado, rot, { alto: true, contorno: 7 });
+  // o olho que esta na peca levantada
+  const naPeca = olhos.filter(([u, v]) => celulaDe(n, u, v) === alvo).map(([u, v]) => {
+    const lx = (u * n - (alvo % n) - 0.5) * lado;
+    const ly = (v * n - Math.floor(alvo / n) - 0.5) * lado;
+    return { x: pc.x + lx * Math.cos(rot) - ly * Math.sin(rot), y: pc.y + lx * Math.sin(rot) + ly * Math.cos(rot) };
+  });
+  if (heroi.id === 'crying') lagrimas(naPeca, 11);
+  if (heroi.id === 'polite') for (const o of naPeca) estrela(o.x + lado * 0.16, o.y - lado * 0.2, lado * 0.11, '#FFFFFF');
+  for (const b of k.brilhos) estrela(b[0], b[1], b[2], b[3] || '#FFE45C');
+  desenharMao(ctx, pc.x + lado * k.dedo[0], pc.y + lado * k.dedo[1], k.mao, 1, 1);
+}
+
+function desenharApoio(a, f) {
+  const fg = figurinha(a, f.x, f.y, f.lado, f.rot);
+  const o = OLHOS[a.id].map(([u, v]) => fg.ponto(u, v));
+  if (a.id === 'crying') lagrimas(o, f.lado * 0.035);
+  if (a.id === 'polite') {
+    estrela(o[0].x - f.lado * 0.08, o[0].y - f.lado * 0.12, f.lado * 0.08, '#FFFFFF');
+    estrela(o[1].x + f.lado * 0.1, o[1].y - f.lado * 0.1, f.lado * 0.06, '#FFE45C');
+  }
+}
+
+/** Troca: tres pecas grandes, uma por gato, o protagonista na mao. */
+function troca(gatos, k) {
+  fundo(k.cores, k.sol[0], k.sol[1]);
+  const [heroi, par, terceiro] = gatos;
+  // arco de troca por baixo das pecas: so aparece entre elas
+  ctx.save();
+  ctx.setLineDash([8, 12]);
+  ctx.strokeStyle = 'rgba(255,255,255,.85)';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(k.par[0], k.par[1]);
+  ctx.quadraticCurveTo(k.arco[0], k.arco[1], k.heroi[0], k.heroi[1]);
+  ctx.stroke();
+  ctx.restore();
+  pecaSolta(terceiro, 0, 0, k.terceiro[0], k.terceiro[1], k.terceiro[2], k.terceiro[3]);
+  pecaSolta(par, 0, 0, k.par[0], k.par[1], k.par[2], k.par[3]);
+  const op = OLHOS[par.id].map(([u, v]) => {
+    const lx = (u - 0.5) * k.par[2];
+    const ly = (v - 0.5) * k.par[2];
+    const r = k.par[3];
+    return { x: k.par[0] + lx * Math.cos(r) - ly * Math.sin(r), y: k.par[1] + lx * Math.sin(r) + ly * Math.cos(r) };
+  });
+  if (par.id === 'crying') lagrimas(op, k.par[2] * 0.035);
+  rastro(k.heroi[0], k.heroi[1], k.heroi[0] - k.arco[0], k.heroi[1] - k.arco[1], k.heroi[2] * 0.8);
+  pecaSolta(heroi, 0, 0, k.heroi[0], k.heroi[1], k.heroi[2], k.heroi[3], { alto: true, contorno: 8 });
+  for (const b of k.brilhos) estrela(b[0], b[1], b[2], b[3] || '#FFE45C');
+  desenharMao(ctx, k.heroi[0] + k.heroi[2] * k.dedo[0], k.heroi[1] + k.heroi[2] * k.dedo[1], k.mao, 1, 1);
+}
+
+// ---------------------------------------------------------------- opcoes
+// tab: centro, lado (com moldura), giro, grade, celula vazia (a peca na mao
+// saiu dela) e alvo (onde a peca vai; ali esta a peca da origem).
+// peca: centro, escala sobre a celula e giro. dedo: ponta do dedo na peca.
+const PARTIDA = {
+  tab: { cx: 292, cy: 372, lado: 450, rot: -0.05, n: 3, origem: 8, alvo: 5 },
+  peca: [498, 214, 1.3, 0.12],
+  dedo: [0.18, 0.22],
+  mao: 92,
+  figs: [
+    { x: 100, y: 96, lado: 172, rot: -0.2 },
+    { x: 556, y: 552, lado: 172, rot: 0.15 },
+  ],
+  brilhos: [[604, 120, 22], [390, 108, 14, '#FFFFFF']],
+};
+const OPCOES = {
+  a: { ...PARTIDA, tipo: 'partida', heroi: 'polite', apoio: ['crying', 'smudge'], cores: ['#FF8FC8', '#C0379E', '#3B1170'], sol: [330, 300] },
+  b: {
+    tipo: 'troca', gatos: ['polite', 'crying', 'smudge'],
+    cores: ['#FFB04A', '#E8456F', '#4A1170'], sol: [320, 300],
+    heroi: [350, 296, 300, 0.1],
+    par: [150, 470, 220, -0.16],
+    terceiro: [500, 520, 190, 0.14],
+    arco: [120, 210],
+    dedo: [0.3, 0.3],
+    mao: 96,
+    brilhos: [[560, 110, 24], [210, 110, 14, '#FFFFFF'], [590, 300, 12, '#FFFFFF']],
+  },
+  c: { ...PARTIDA, tipo: 'partida', heroi: 'crying', apoio: ['polite', 'smudge'], cores: ['#7FA0FF', '#5B3FD0', '#1F0F5C'], sol: [330, 300] },
+};
+
+const K = OPCOES[opcao] || OPCOES.a;
+const ids = K.tipo === 'troca' ? K.gatos : [K.heroi, ...K.apoio];
+const gatos = await Promise.all(ids.map(carregar));
+if (gatos.some((x) => x.im.provisoria)) {
+  ctx.fillStyle = '#FF0000';
+  ctx.fillRect(0, 0, V, V);
+} else if (K.tipo === 'troca') {
+  troca(gatos, K);
+} else {
+  partida(gatos[0], gatos.slice(1), K);
+}
+</script>
+</body></html>
