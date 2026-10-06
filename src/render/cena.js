@@ -1,6 +1,6 @@
 // Cena do tabuleiro em canvas 2D: fundo da pagina, moldura, pecas (com tween,
-// cola entre pecas certas, selecao e arrasto), mao do tutorial, espiada e a
-// revelacao (brilho, confete e o palco com a reacao do gato).
+// cola entre pecas certas, selecao e arrasto), mao do tutorial, espiada, selo
+// de combo, PERFECT e a revelacao (brilho, confete e o palco com a reacao).
 //
 // Um relogio so: todo metodo recebe "agora" de performance.now(), o mesmo da
 // agenda do main.js. A cena nao conhece regra: so le o tabuleiro que recebe.
@@ -20,6 +20,24 @@ const ENTRADA_SEGURA = 750;
 const ENTRADA_VOO = 520;
 const BRILHO_MS = 520;
 const FUSAO_MS = 260;
+const COMBO_MS = 850;
+/** O PERFECT bate na tela aqui; o som (audio.perfeito) usa o mesmo instante. */
+const PERFEITO_BATIDA = 180;
+/** ms do PERFECT ate a revelacao; dali o selo cresce e some. */
+export const PERFEITO_MS = 1000;
+const PERFEITO_FIM = 1300;
+const TAU = Math.PI * 2;
+
+/** Selo de combo por faixa (2-3, 4-5, 6-7, 8-9, 10+): [topo, base, extrusao]. */
+const CORES_COMBO = [
+  ['#FFF27A', '#FFAA1F', '#C25A00'],
+  ['#E6FF7A', '#3FD45A', '#1E7A2E'],
+  ['#A8F3FF', '#2E8BFF', '#1A4AA8'],
+  ['#FFC2EC', '#FF3B9A', '#A3155A'],
+  ['#E8C2FF', '#9B4DFF', '#55209E'],
+];
+const CORES_PERFEITO = ['#FFF6A0', '#FFC21F', '#D9480F'];
+const PERFEITO_TXT = 'PERFECT!';
 
 /** @param {number} k */
 const saida = (k) => 1 - Math.pow(1 - k, 3);
@@ -106,6 +124,66 @@ export function desenharMao(c, x, y, s, alfa, aperto) {
   }
 }
 
+/** Estrela de quatro pontas (a mesma do brilho do palco). @param {CanvasRenderingContext2D} c */
+function estrela(c, x, y, s, cor) {
+  if (s <= 0) return;
+  c.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4;
+    const rr = i % 2 ? s * 0.28 : s;
+    if (i) c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    else c.moveTo(x + rr, y);
+  }
+  c.closePath();
+  c.fillStyle = cor;
+  c.fill();
+}
+
+/**
+ * Texto de jogo no padrao Poki, centrado em (0, 0): extrusao embaixo,
+ * contorno grosso, degrade vertical com faixa de brilho. Cada parte tem a
+ * propria escala (o "x" menor do combo) e o proprio pulo (dy, em tam).
+ * @param {CanvasRenderingContext2D} c
+ * @param {{ txt: string, k?: number, dy?: number }[]} partes
+ * @param {number} tam px
+ * @param {string[]} cores [topo, base, extrusao]
+ */
+function textoGordo(c, partes, tam, cores) {
+  const fonte = (/** @type {number} */ k) => `700 ${Math.max(1, Math.round(tam * k))}px Fredoka, system-ui, sans-serif`;
+  const larg = partes.map((p) => {
+    c.font = fonte(p.k || 1);
+    return c.measureText(p.txt).width;
+  });
+  const total = larg.reduce((a, b) => a + b, 0);
+  const base = tam * 0.34;
+  const ext = Math.max(2, tam * 0.09);
+  const gr = c.createLinearGradient(0, base - tam * 0.72, 0, base);
+  gr.addColorStop(0, '#FFFFFF');
+  gr.addColorStop(0.18, cores[0]);
+  gr.addColorStop(0.5, cores[0]);
+  gr.addColorStop(0.56, cores[1]);
+  gr.addColorStop(1, cores[1]);
+  c.textAlign = 'left';
+  c.textBaseline = 'alphabetic';
+  c.lineJoin = 'round';
+  c.lineWidth = Math.max(3, tam * 0.2);
+  c.strokeStyle = TINTA;
+  // contornos primeiro (extrusao e frente), depois os recheios por cima
+  for (const passo of [0, 1, 2, 3]) {
+    let x = -total / 2;
+    partes.forEach((p, i) => {
+      c.font = fonte(p.k || 1);
+      const y = base + (p.dy || 0) * tam + (passo === 0 || passo === 2 ? ext : 0);
+      if (passo < 2) c.strokeText(p.txt, x, y);
+      else {
+        c.fillStyle = passo === 2 ? cores[2] : gr;
+        c.fillText(p.txt, x, y);
+      }
+      x += larg[i];
+    });
+  }
+}
+
 /** @param {HTMLCanvasElement} canvas */
 export function criarCena(canvas) {
   const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
@@ -146,6 +224,10 @@ export function criarCena(canvas) {
   let revelacao = null;
   let palcoT0 = -1;
   let palcoIniciado = false;
+  /** @type {null|{ n: number, celulas: number[], t0: number }} selo de combo (um por vez) */
+  let selo = null;
+  /** inicio do PERFECT (-1 nenhum) */
+  let perfeitoT0 = -1;
   const palco = criarPalco();
 
   function montarFundoPagina() {
@@ -378,6 +460,147 @@ export function criarCena(canvas) {
     desenharMao(ctx, x, y, Math.min(lay.pw, lay.ph, lay.ref * 0.22) * 0.55, alfa, aperto);
   }
 
+  /**
+   * Selo "2x", "3x"... sobre as pecas que travaram: entra com estalo, sobe
+   * inclinado e some. Anel e estrelas saem do centro das pecas.
+   * @param {number} agora
+   */
+  function desenharCombo(agora) {
+    if (!selo || !lay) return;
+    const te = agora - selo.t0;
+    if (te >= COMBO_MS) {
+      selo = null;
+      return;
+    }
+    if (te < 0) return;
+    const { n } = selo;
+    const cores = CORES_COMBO[Math.min(CORES_COMBO.length - 1, Math.floor((n - 2) / 2))];
+    let ax = 0;
+    let ay = 0;
+    for (const c of selo.celulas) {
+      const r = lay.celula(c);
+      ax += r.x + r.w / 2;
+      ay += r.y + r.h / 2;
+    }
+    ax /= selo.celulas.length;
+    ay /= selo.celulas.length;
+    const tam = Math.min(Math.max(Math.min(lay.pw, lay.ph) * 1.05, lay.ref * 0.13), lay.ref * 0.2) * (1 + 0.0625 * Math.min(n - 2, 8));
+
+    // anel e estrelas
+    const kA = lim(te / 420);
+    if (kA < 1) {
+      ctx.save();
+      ctx.globalAlpha = 0.85 * (1 - kA);
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = Math.max(2, tam * 0.14 * (1 - kA));
+      ctx.beginPath();
+      ctx.arc(ax, ay, tam * (0.35 + 1.1 * saida(kA)), 0, TAU);
+      ctx.stroke();
+      const N = 6 + Math.min(n, 10);
+      const kE = lim(te / 560);
+      for (let i = 0; i < N; i++) {
+        const a = (i / N) * TAU + n * 0.7;
+        const d = tam * (0.4 + (1.2 + (i % 3) * 0.25) * saida(kE));
+        estrela(ctx, ax + Math.cos(a) * d, ay + Math.sin(a) * d, tam * 0.17 * (1 - kE), i % 2 ? cores[0] : '#FFFFFF');
+      }
+      ctx.restore();
+    }
+
+    // texto: estalo (0,3 -> 1,25 -> 1), sobe e some nos ultimos 250 ms
+    let s = 1;
+    if (te < 110) s = 0.3 + 0.95 * saida(te / 110);
+    else if (te < 240) s = 1.25 - 0.25 * saida((te - 110) / 130);
+    const fim = lim((te - (COMBO_MS - 250)) / 250);
+    s *= 1 + 0.15 * fim;
+    const meia = tam * 0.4 * (String(n).length + 0.75);
+    const x = lay.iw > meia * 2 ? Math.min(Math.max(ax, lay.ix + meia), lay.ix + lay.iw - meia) : lay.ix + lay.iw / 2;
+    const y = Math.max(ay - saida(te / COMBO_MS) * Math.min(lay.ph, lay.ref * 0.25) * 0.6, lay.iy + tam * 0.5);
+    ctx.save();
+    ctx.globalAlpha = 1 - fim;
+    ctx.translate(x, y);
+    ctx.rotate(n % 2 ? -0.1 : 0.1);
+    ctx.scale(s, s);
+    textoGordo(ctx, [{ txt: String(n) }, { txt: 'x', k: 0.7 }], tam, cores);
+    ctx.restore();
+  }
+
+  /**
+   * PERFECT: o quadro escurece, raios dourados giram atras, a palavra bate na
+   * tela (PERFEITO_BATIDA), as letras pulam em onda e, na revelacao, cresce e some.
+   * @param {number} agora
+   */
+  function desenharPerfeito(agora) {
+    if (perfeitoT0 < 0 || !lay) return;
+    const te = agora - perfeitoT0;
+    if (te >= PERFEITO_FIM) {
+      perfeitoT0 = -1;
+      return;
+    }
+    if (te < 0) return;
+    const { ix, iy, iw, ih } = lay;
+    const cx = ix + iw / 2;
+    const cy = iy + ih / 2;
+    const surge = lim(te / PERFEITO_BATIDA);
+    const fim = lim((te - PERFEITO_MS) / (PERFEITO_FIM - PERFEITO_MS));
+    const vis = surge * (1 - fim);
+
+    // fundo: quadro escurecido e raios
+    ctx.save();
+    retArred(ctx, ix, iy, iw, ih, lay.borda * 0.9);
+    ctx.clip();
+    ctx.fillStyle = `rgba(20,10,40,${0.34 * vis})`;
+    ctx.fillRect(ix, iy, iw, ih);
+    const R = Math.hypot(iw, ih) * 0.6;
+    ctx.translate(cx, cy);
+    ctx.rotate(te / 1600);
+    const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+    gr.addColorStop(0, 'rgba(255,220,90,.75)');
+    gr.addColorStop(1, 'rgba(255,220,90,0)');
+    ctx.fillStyle = gr;
+    ctx.globalAlpha = vis;
+    ctx.beginPath();
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * TAU;
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, R * (0.6 + 0.4 * saida(surge)), a, a + TAU / 28);
+      ctx.closePath();
+    }
+    ctx.fill();
+    ctx.restore();
+
+    // tamanho: a palavra cabe em 86% do quadro e na tela
+    ctx.font = '700 100px Fredoka, system-ui, sans-serif';
+    const l100 = ctx.measureText(PERFEITO_TXT).width || 400;
+    const tam = Math.min((100 * iw * 0.86) / l100, (100 * W * 0.92) / l100, lay.ref * 0.22);
+
+    // coroa de estrelas na batida
+    const kE = lim((te - PERFEITO_BATIDA) / 650);
+    if (te >= PERFEITO_BATIDA && kE < 1) {
+      ctx.save();
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * TAU + 0.26;
+        const d = saida(kE);
+        estrela(ctx, cx + Math.cos(a) * iw * 0.46 * d, cy + Math.sin(a) * tam * 1.5 * d, tam * 0.22 * (1 - kE), i % 2 ? CORES_PERFEITO[0] : '#FFFFFF');
+      }
+      ctx.restore();
+    }
+
+    // palavra: cai de 2,4 para 1 ate a batida, amassa um pouco e ondula
+    let s;
+    if (te < PERFEITO_BATIDA) s = 2.4 - 1.4 * Math.pow(te / PERFEITO_BATIDA, 2);
+    else s = 1 - 0.07 * Math.sin(lim((te - PERFEITO_BATIDA) / 170) * Math.PI);
+    s *= 1 + 0.3 * fim;
+    const onda = lim((te - PERFEITO_BATIDA - 120) / 200);
+    const partes = PERFEITO_TXT.split('').map((txt, i) => ({ txt, dy: -0.07 * onda * Math.max(0, Math.sin(te / 120 - i * 0.6)) }));
+    ctx.save();
+    ctx.globalAlpha = lim(te / (PERFEITO_BATIDA * 0.6)) * (1 - fim);
+    ctx.translate(cx, cy - ih * 0.1 * fim);
+    ctx.rotate(-0.1);
+    ctx.scale(s, s);
+    textoGordo(ctx, partes, tam, CORES_PERFEITO);
+    ctx.restore();
+  }
+
   return {
     get layout() {
       return lay;
@@ -414,6 +637,8 @@ export function criarCena(canvas) {
         palcoT0 = -1;
         flashes.clear();
         tremidas.clear();
+        selo = null;
+        perfeitoT0 = -1;
         palco.parar();
       }
       encaixarTudo();
@@ -478,6 +703,18 @@ export function criarCena(canvas) {
     /** @param {number} agora @param {number} ms */
     espiar(agora, ms) {
       espiada = { t0: agora, dur: ms };
+    },
+    /**
+     * Selo de combo n sobre as celulas que travaram (troca o selo anterior).
+     * @param {number} n @param {number[]} celulas @param {number} agora
+     */
+    combo(n, celulas, agora) {
+      if (celulas.length) selo = { n, celulas: celulas.slice(), t0: agora };
+    },
+    /** PERFECT sobre o quadro; a revelacao entra PERFEITO_MS depois. @param {number} agora */
+    perfeito(agora) {
+      perfeitoT0 = agora;
+      selo = null;
     },
     /**
      * Comeca a revelacao: brilho, fusao das pecas e o palco com a reacao.
@@ -565,11 +802,14 @@ export function criarCena(canvas) {
           ctx.fillRect(ix, iy, iw, ih);
           ctx.restore();
         }
+        desenharCombo(agora);
+        desenharPerfeito(agora);
         return;
       }
 
-      if (entradaT0 >= 0 && agora - entradaT0 < ENTRADA_SEGURA && tab.pos.every((p) => anim[p] && anim[p].t0 > agora)) {
-        // imagem inteira antes de embaralhar
+      const segurando = entradaT0 >= 0 && agora - entradaT0 < ENTRADA_SEGURA && tab.pos.every((p) => anim[p] && anim[p].t0 > agora);
+      if (segurando || perfeitoT0 >= 0) {
+        // imagem inteira antes de embaralhar (ou ja montada, sob o PERFECT)
         ctx.save();
         retArred(ctx, ix, iy, iw, ih, raioQuadro);
         ctx.clip();
@@ -599,6 +839,8 @@ export function criarCena(canvas) {
         }
       }
       desenharMaoTutorial(agora);
+      desenharCombo(agora);
+      desenharPerfeito(agora);
     },
   };
 }

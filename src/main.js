@@ -3,11 +3,12 @@
 //
 // Fluxo de um nivel: a imagem do gato aparece inteira e embaralha -> o jogador
 // troca pecas (arraste ou toque-toque); peca certa trava e cola nas vizinhas
-// certas -> montada a imagem, o gato ganha vida com a reacao do meme e entra
-// no album -> "proximo" -> intervalo comercial (a partir do nivel 4, a Poki
+// certas; acertos seguidos sobem a nota sem fim e mostram o combo -> montada
+// a imagem (PERFECT se nenhuma troca errou), o gato ganha vida com a reacao do
+// meme e entra no album -> "proximo" -> intervalo comercial (a partir do nivel 4, a Poki
 // decide a frequencia) -> proximo gato.
 
-import { criarCena } from './render/cena.js';
+import { criarCena, PERFEITO_MS } from './render/cena.js';
 import { calcularLayout } from './render/layout.js';
 import { imagensDoGato, amostraDasPecas } from './render/imagens.js';
 import { misturar } from './render/provisorio.js';
@@ -42,6 +43,14 @@ const PROXIMO_MS = 900;
 const CONTAGEM = 3;
 /** Pixels por peca na amostra que acha pecas iguais (jogo/iguais.js). */
 const AMOSTRA = 24;
+/**
+ * Lado menor minimo da peca (px CSS): a grade perde colunas ou linhas para
+ * nao passar disso. No Player Fit Test da 0.1.0, o celular em pe abandonou
+ * mais os niveis grandes, com pecas de ~58x50 px.
+ */
+const PECA_MIN = 56;
+/** Trocas seguidas sem travar que contam como "empacou": o Espiar recarrega e a Dica pulsa. */
+const ERROS_AJUDA = 3;
 
 const VERSAO_SAVE = 1;
 const salvo = armazem.ler('save', null);
@@ -73,8 +82,14 @@ const J = {
   carregou: false,
   espiou: false,
   dicas: 0,
-  /** travas seguidas (o som sobe) */
+  /** acertos seguidos: trocas que travaram (som sem fim e selo de combo) */
   seq: 0,
+  /** alguma troca do nivel nao travou nada (sem PERFECT) */
+  errou: false,
+  /** trocas seguidas que nao travaram (ERROS_AJUDA = empacou) */
+  erros: 0,
+  /** o "empacou" deste nivel ja foi medido */
+  empacou: false,
   /** contador do proximo: 0 nao comecou, -1 parado pelo jogador, >0 id do que esta correndo */
   conta: 0,
   /** ms entre trocas do jogador automatico (0 = desligado) */
@@ -101,7 +116,12 @@ function vibrar(ms) {
 }
 
 // ------------------------------------------------------------------ layout
-function medirLayout() {
+/**
+ * Layout do quadro nesta tela. Sem argumentos, para o tabuleiro e a imagem
+ * atuais; com eles, para escolher a grade antes de criar o tabuleiro.
+ * @param {number} [cols] @param {number} [lins] @param {number} [proporcao]
+ */
+function medirLayout(cols, lins, proporcao) {
   const W = window.innerWidth;
   const H = window.innerHeight;
   const topo = $('topo').getBoundingClientRect();
@@ -113,9 +133,9 @@ function medirLayout() {
     topo: topo.bottom + 4,
     base: coluna ? H - 8 : base.top - 6,
     direita: coluna ? W - base.left + 4 : 0,
-    cols: tab.cols,
-    lins: tab.lins,
-    proporcao: J.im ? J.im.w / J.im.h : 1,
+    cols: cols ?? tab.cols,
+    lins: lins ?? tab.lins,
+    proporcao: proporcao ?? (J.im ? J.im.w / J.im.h : 1),
   });
 }
 
@@ -170,6 +190,13 @@ function aplicarCor(g) {
   document.documentElement.style.setProperty('--placa', misturar(g.cor, '#1A1030', 0.35));
 }
 
+/** Estalo curto num botao (o Espiar que voltou). @param {HTMLElement} el */
+function estalar(el) {
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
 /** @param {string} txt @param {number} ms */
 function avisar(txt, ms) {
   const a = $('aviso');
@@ -189,7 +216,10 @@ async function iniciarNivel(mostrar = true) {
   const gato = (dep.gato && gatoPorId(dep.gato)) || escolha.gato;
   const im = await imagensDoGato(gato);
   if (g !== J.gen) return;
-  const { cols, lins } = gradeParaImagem(J.nivel, im.w / im.h);
+  const prop = im.w / im.h;
+  // a grade perde colunas ou linhas se a peca ficaria menor que PECA_MIN aqui
+  const q = medirLayout(1, 1, prop);
+  const { cols, lins } = gradeParaImagem(J.nivel, prop, { cols: q.iw / PECA_MIN, lins: q.ih / PECA_MIN });
   /** @type {number[]|undefined} */
   let classe;
   try {
@@ -202,6 +232,10 @@ async function iniciarNivel(mostrar = true) {
   J.toque = null;
   J.espiou = false;
   J.seq = 0;
+  J.errou = false;
+  J.erros = 0;
+  J.empacou = false;
+  $('bDica').classList.remove('pulsar');
   aplicarCor(gato);
   atualizarHud(true);
   cena.configurar(J.tab, medirLayout(), im, gato);
@@ -223,7 +257,26 @@ async function iniciarNivel(mostrar = true) {
     }
     if (J.nivel <= 2) mostrarMao();
     if (J.auto) depois(J.auto, passoAuto);
+    // botoes de ajuda a vista (Interaction Events: visible contra interact)
+    poki.measure('button', 'peek', 'visible');
+    if (poki.sdkPronto) poki.measure('button', 'hint', 'visible');
   });
+}
+
+/** O jogador empacou: o Espiar recarrega e a Dica pulsa (o video segue so por escolha). */
+function ajudar() {
+  J.erros = 0;
+  if (!J.empacou) {
+    J.empacou = true;
+    poki.measure('level', String(J.nivel), 'stuck');
+  }
+  if (J.espiou) {
+    J.espiou = false;
+    atualizarHud();
+    estalar($('bEspiar'));
+    poki.measure('button', 'peek', 'visible');
+  }
+  $('bDica').classList.add('pulsar');
 }
 
 function mostrarMao() {
@@ -249,12 +302,17 @@ function executar(a, b) {
   audio.trocar();
   depois(ms * 0.55, () => {
     if (travou.length) {
-      J.seq += travou.length;
+      J.seq++;
+      J.erros = 0;
+      $('bDica').classList.remove('pulsar');
       cena.travou(travou, agora());
-      audio.travar(J.seq);
+      audio.travar(J.seq, travou.length > 1);
+      if (J.seq >= 2) cena.combo(J.seq, travou, agora());
       vibrar(12);
     } else {
       J.seq = 0;
+      J.errou = true;
+      if (++J.erros >= ERROS_AJUDA) ajudar();
     }
     if (completo(tab)) {
       J.fase = 'revelando';
@@ -280,6 +338,19 @@ function completar() {
   const novo = !save.gatos.includes(J.gato.id);
   if (novo) save.gatos.push(J.gato.id);
   salvar();
+  if (J.errou) {
+    revelarGato(novo);
+    return;
+  }
+  // nivel sem erro: o PERFECT bate na tela e a revelacao espera por ele
+  cena.perfeito(agora());
+  audio.perfeito();
+  vibrar([20, 40, 20, 40, 30]);
+  depois(PERFEITO_MS, () => revelarGato(novo));
+}
+
+/** O gato ganha vida com a reacao e o botao de proximo aparece. @param {boolean} novo */
+function revelarGato(novo) {
   const ms = cena.revelar(agora());
   audio.vitoria();
   vibrar([18, 60, 28]);
@@ -359,11 +430,12 @@ async function proximo() {
   iniciarNivel(!dep.fixo);
 }
 
-/** Resolve o nivel na hora (prints da revelacao). */
+/** Resolve o nivel na hora (prints da revelacao, sem o PERFECT na frente). */
 function resolverNaHora() {
   const tab = /** @type {Tabuleiro} */ (J.tab);
   for (let d = dica(tab); d; d = dica(tab)) trocar(tab, d.a, d.b);
   cena.sincronizar(agora());
+  J.errou = true;
   completar();
 }
 
@@ -384,16 +456,19 @@ function espiar() {
   J.espiou = true;
   cena.espiar(agora(), ESPIADA_MS);
   audio.espiar();
+  poki.measure('button', 'peek', 'interact');
   atualizarHud();
 }
 
 async function dicaComVideo() {
   if (J.fase !== 'jogando') return;
+  poki.measure('button', 'hint', 'interact');
   const g = J.gen;
   if (!(await recompensa()) || g !== J.gen || J.fase !== 'jogando') return;
   const d = J.tab && dica(J.tab);
   if (!d) return;
   J.dicas++;
+  $('bDica').classList.remove('pulsar');
   J.sel = null;
   cena.selecionar(null);
   cena.mostrarMao({ de: d.a, para: d.b }, agora());
@@ -442,8 +517,10 @@ canvas.addEventListener('pointerdown', (e) => {
   const p = ponto(e);
   if (J.fase === 'revelando') {
     if (!cena.noQuadro(p.x, p.y)) return;
-    pararContagem();
+    // so para o contador quem repete a reacao: um toque durante o PERFECT
+    // (o gato ainda nao reagiu) nao conta como mexer no gato
     if (cena.reagir(agora())) {
+      pararContagem();
       audio.reagir(J.gato.reacao);
       $('aviso').hidden = true;
     }

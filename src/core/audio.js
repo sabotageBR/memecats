@@ -5,6 +5,30 @@
 // anuncio zera o ganho mestre ANTES de pedir o anuncio e suspende o contexto
 // 80 ms depois (padrao do hexadrop: o onStart do SDK pode nao chegar).
 
+const ESCALA_MAIOR = [0, 2, 4, 5, 7, 9, 11];
+/** Oitava mais grave da nota sem fim: 660 / 8, entao a nota 1 tem o centro em 660 Hz. */
+const BASE_SEM_FIM = 82.5;
+
+/**
+ * Nota k (1, 2, 3...) da escala sem fim (tom de Shepard): sete senos em
+ * oitavas com volume em sino em torno de 660 Hz. Cada passo sobe um grau da
+ * escala maior; as oitavas de baixo entram mudas e as de cima saem mudas,
+ * entao k e k + 7 soam iguais e a subida nunca chega ao fim.
+ * @param {number} k
+ * @returns {[number, number][]} [hz, peso] da mais grave para a mais aguda
+ */
+export function notaSemFim(k) {
+  const g = Math.max(0, Math.floor(k) - 1);
+  const pos = ESCALA_MAIOR[g % 7] / 12;
+  /** @type {[number, number][]} */
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    const oit = i + pos;
+    out.push([BASE_SEM_FIM * Math.pow(2, oit), Math.exp(-((oit - 3) ** 2) / 2)]);
+  }
+  return out;
+}
+
 export function criarAudio() {
   /** @type {AudioContext|null} */
   let ctx = null;
@@ -238,14 +262,29 @@ export function criarAudio() {
       tom(420, 0.08, 'sine', 0.06, 560);
     },
     /**
-     * peca travada; k = quantas seguidas (o tom sobe na sequencia)
+     * Acerto numero k da sequencia: a nota sobe um grau a cada acerto e nunca
+     * chega ao fim (notaSemFim). Troca que trava duas pecas soa em acorde,
+     * com a quinta. Do 4o acerto em diante entra um brilho que cresce ate o 10o.
      * @param {number} k
+     * @param {boolean} [dupla]
      */
-    travar(k = 1) {
-      const base = 660 * Math.pow(2, Math.min(k - 1, 8) / 12);
+    travar(k = 1, dupla = false) {
       ruido(0.03, 3500, 5, 0.25);
-      tom(base, 0.16, 'triangle', 0.12, 0, 0.01);
-      tom(base * 1.5, 0.2, 'sine', 0.07, 0, 0.06);
+      const nota = notaSemFim(k);
+      for (const [f, p] of nota) if (p > 0.02) tom(f, 0.3, 'sine', 0.08 * p, 0, 0.01);
+      if (dupla) for (const [f, p] of notaSemFim(k + 4)) if (p > 0.02) tom(f, 0.3, 'sine', 0.05 * p, 0, 0.05);
+      // o brilho e a parcial da 5a oitava, entao tambem gira com a nota
+      if (k >= 4) tom(nota[4][0], 0.14, 'triangle', 0.035 * Math.min(1, (k - 3) / 7), 0, 0.03);
+    },
+    /** Nivel sem erro. A batida cai em 0,18 s, quando o PERFECT bate na tela (render/cena.js). */
+    perfeito() {
+      const b = 0.18;
+      tom(330, b, 'triangle', 0.07, 1320);
+      ruido(b, 1600, 0.8, 0.05, 0, 'bandpass');
+      bumbo(b, 0.3);
+      ruido(0.7, 6500, 0.7, 0.07, b, 'highpass');
+      [523, 659, 784, 1046].forEach((f) => tom(f, 0.6, 'triangle', 0.07, 0, b));
+      [1568, 2093, 2637, 3136].forEach((f, i) => tom(f, 0.35, 'sine', 0.045, 0, b + 0.06 + i * 0.05));
     },
     /** toque numa peca presa */
     toc() {

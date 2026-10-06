@@ -1,0 +1,1 @@
+  g('keyboard', 'Keyboard Cat', 'Gato Tecladista', 'Gato Teclado', 'epico', 'dancar', '#3CB4C8', '♪'),

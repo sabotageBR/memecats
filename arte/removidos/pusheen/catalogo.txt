@@ -1,0 +1,1 @@
+  g('pusheen', 'Pusheen', 'Pusheen', 'Pusheen', 'comum', 'pular', '#A08A78'),

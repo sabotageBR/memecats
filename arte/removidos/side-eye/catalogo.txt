@@ -1,0 +1,1 @@
+  g('side-eye', 'Side Eye Cat', 'Gato de Lado', 'Gato de Reojo', 'raro', 'susto', '#2DBE3A', '...'),

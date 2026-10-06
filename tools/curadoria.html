@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curadoria das imagens</title>
+<style>
+/* Ferramenta local (npm run servir): ordem dos niveis, corte das bordas,
+   exclusao e imagens novas. Grava pelo POST /__curadoria (tools/curadoria.mjs). */
+@font-face{font-family:"Fredoka";font-weight:600;src:url("../src/ui/fontes/fredoka-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:700;src:url("../src/ui/fontes/fredoka-latin-700-normal.woff2") format("woff2")}
+:root{--fundo:#1A1030;--painel:#2A2238;--painel2:#352B47;--linha:rgba(255,255,255,.12);--texto:#F4F1FA;--suave:rgba(244,241,250,.62);--acento:#FF6B57;--ok:#3FD45A;--aviso:#FFC21F;--erro:#FF4F6D;--novo:#3CC8FF}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fundo);color:var(--texto);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,b.nome{font-family:"Fredoka",system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:999px;padding:8px 16px;background:var(--painel2);font-weight:600;transition:background .15s,opacity .15s}
+button:hover{background:#43385A}
+button:disabled{opacity:.4;cursor:default}
+button.primario{background:var(--acento);color:#fff}
+button.primario:hover{background:#FF8270}
+button.fino{padding:5px 12px;font-size:13px}
+button.perigo{color:#FFB3BF}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+
+header{position:sticky;top:0;z-index:5;background:rgba(26,16,48,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--linha);padding:14px 24px}
+.topo{display:flex;align-items:center;gap:16px;flex-wrap:wrap;max-width:1400px;margin:0 auto}
+h1{margin:0;font-size:22px}
+.topo .sub{margin:0;color:var(--suave);flex:1;min-width:240px}
+#resumo{color:var(--suave);font-size:14px}
+#estado{font-size:14px;font-weight:600}
+#estado.sujo{color:var(--aviso)}
+#estado.ok{color:var(--ok)}
+#estado.erro{color:var(--erro)}
+#aviso{max-width:1400px;margin:8px auto 0;color:var(--aviso);font-size:13px;font-weight:600}
+#aviso:empty{display:none}
+#log{max-width:1400px;margin:8px auto 0;padding:0;list-style:none;font-size:13px;color:var(--suave);max-height:120px;overflow:auto}
+#log:empty{display:none}
+#log li.erro{color:var(--erro)}
+
+main{max-width:1400px;margin:0 auto;padding:16px 24px 80px}
+h2{font-size:18px;margin:24px 0 12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+h2 small{font:13px system-ui,sans-serif;color:var(--suave)}
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;align-items:start}
+
+.cartao{position:relative;background:var(--painel);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;border:2px solid transparent;transition:opacity .15s}
+.cartao.cortado{border-color:rgba(255,107,87,.55)}
+.cartao.novo{border-color:var(--novo)}
+.cartao.excluido{opacity:.45;border-color:var(--erro)}
+.cartao.excluido .foto canvas{filter:grayscale(1)}
+.cartao.arrastando{opacity:.3}
+.cartao.antes{box-shadow:-6px 0 0 -1px var(--acento)}
+.cartao.depois{box-shadow:6px 0 0 -1px var(--acento)}
+.barra{display:flex;align-items:center;gap:6px;padding:8px 10px;background:rgba(0,0,0,.18);cursor:grab}
+.barra:active{cursor:grabbing}
+.pega{font-size:18px;line-height:1;color:var(--suave);user-select:none}
+.barra label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--suave)}
+.barra input{width:56px;background:#1F1830;border:1px solid var(--linha);border-radius:8px;padding:3px 6px;font-size:14px;font-weight:700;color:var(--texto)}
+.barra .espaco{flex:1}
+.barra button{padding:3px 9px;font-size:12px}
+.foto{position:relative;display:grid;place-items:center;height:170px;padding:0;border-radius:0;background:#120B22 repeating-conic-gradient(#1B1230 0 25%,#120B22 0 50%) 0 0/16px 16px}
+.foto:hover{background-color:#120B22}
+.foto canvas{max-width:100%;max-height:170px;display:block}
+.selos{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.selo{padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--acento);color:#fff}
+.selo.novo{background:var(--novo);color:#06283A}
+.selo.sai{background:var(--erro)}
+.info{padding:10px 12px 4px;display:flex;flex-direction:column;gap:2px}
+.info b.nome{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info small{color:var(--suave);font-size:12px}
+.acoes{display:flex;gap:6px;padding:8px 12px 12px;flex-wrap:wrap;margin-top:auto}
+.campos{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px 12px 0}
+.campos label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--suave)}
+.campos label.largo{grid-column:1/-1}
+.campos>*{min-width:0}
+.campos input,.campos select{width:100%;background:#1F1830;border:1px solid var(--linha);border-radius:8px;padding:6px 8px;font-size:13px;min-width:0}
+.campos input:invalid{border-color:var(--erro)}
+
+.soltar{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:96px;border:2px dashed rgba(255,255,255,.25);border-radius:16px;color:var(--suave);cursor:pointer;text-align:center;padding:14px;transition:border-color .15s,background .15s}
+.soltar:hover,.soltar.sobre{border-color:var(--acento);background:rgba(255,107,87,.06);color:var(--texto)}
+.soltar b{font-family:"Fredoka",system-ui,sans-serif;font-size:17px;color:var(--texto)}
+
+dialog{border:0;border-radius:20px;padding:0;background:var(--painel);color:var(--texto);max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);box-shadow:0 20px 60px rgba(0,0,0,.6)}
+dialog::backdrop{background:rgba(8,4,18,.78)}
+.ed{display:flex;flex-direction:column;gap:12px;padding:16px 18px}
+.ed-topo{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ed-topo b{font-family:"Fredoka",system-ui,sans-serif;font-size:19px}
+#edInfo{color:var(--suave);font-size:13px}
+.ed-palco{display:grid;place-items:center;background:#120B22;border-radius:12px;padding:12px;overflow:hidden}
+.area{position:relative;touch-action:none;user-select:none}
+.area img{display:block;width:100%;height:100%;pointer-events:none}
+.caixa{position:absolute;outline:2px solid #fff;box-shadow:0 0 0 9999px rgba(8,4,18,.68);cursor:move}
+.caixa .pecas{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.5) 1px,transparent 1px);background-size:calc(100% / var(--c,1)) 100%,100% calc(100% / var(--l,1))}
+.caixa.sem-grade .pecas{display:none}
+.alca{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;background:#fff;border:2px solid var(--acento);border-radius:4px}
+.alca[data-alca=n],.alca[data-alca=s]{left:50%;cursor:ns-resize}
+.alca[data-alca=l],.alca[data-alca=o]{top:50%;cursor:ew-resize}
+.alca[data-alca=n],.alca[data-alca=no],.alca[data-alca=nl]{top:0}
+.alca[data-alca=s],.alca[data-alca=so],.alca[data-alca=sl]{top:100%}
+.alca[data-alca=o],.alca[data-alca=no],.alca[data-alca=so]{left:0}
+.alca[data-alca=l],.alca[data-alca=nl],.alca[data-alca=sl]{left:100%}
+.alca[data-alca=no],.alca[data-alca=sl]{cursor:nwse-resize}
+.alca[data-alca=nl],.alca[data-alca=so]{cursor:nesw-resize}
+.ed-baixo{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.lados{display:flex;gap:10px;flex-wrap:wrap}
+.lados label{display:flex;flex-direction:column;font-size:11px;color:var(--suave);gap:2px}
+.lados input{width:86px;background:#1F1830;border:1px solid var(--linha);border-radius:8px;padding:6px 8px;font-size:14px}
+.ed-baixo .espaco{flex:1}
+.ed-baixo label.check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--suave)}
+#edDica{font-size:12px;color:var(--suave);margin:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="topo">
+    <h1>Curadoria das imagens</h1>
+    <p class="sub">Ordem dos níveis, corte das bordas, exclusão e imagens novas. Nada muda no jogo até você salvar.</p>
+    <span id="resumo"></span>
+    <span id="estado"></span>
+    <button id="salvar" class="primario" disabled>Salvar</button>
+  </div>
+  <p id="aviso"></p>
+  <ul id="log"></ul>
+</header>
+<main>
+  <label id="soltar" class="soltar">
+    <b>Adicionar imagens</b>
+    <span>Solte aqui ou clique para escolher (JPG, PNG ou WebP). Elas entram no fim; arraste para o nível que quiser.</span>
+    <input id="arquivos" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+  </label>
+  <h2>Ordem do jogo <small>arraste os cartões (ou use ◀ ▶ e o número do nível); clique numa foto para cortar</small></h2>
+  <div id="gatos" class="grade"></div>
+</main>
+
+<dialog id="editor">
+  <div class="ed">
+    <div class="ed-topo"><b id="edNome"></b><span id="edInfo"></span></div>
+    <div class="ed-palco">
+      <div id="edArea" class="area">
+        <img id="edImg" alt="">
+        <div id="edCaixa" class="caixa">
+          <div class="pecas"></div>
+          <i class="alca" data-alca="no"></i><i class="alca" data-alca="n"></i><i class="alca" data-alca="nl"></i>
+          <i class="alca" data-alca="o"></i><i class="alca" data-alca="l"></i>
+          <i class="alca" data-alca="so"></i><i class="alca" data-alca="s"></i><i class="alca" data-alca="sl"></i>
+        </div>
+      </div>
+    </div>
+    <div class="ed-baixo">
+      <div class="lados">
+        <label>Topo (px)<input id="ladoT" type="number" min="0" step="1"></label>
+        <label>Direita (px)<input id="ladoD" type="number" min="0" step="1"></label>
+        <label>Base (px)<input id="ladoB" type="number" min="0" step="1"></label>
+        <label>Esquerda (px)<input id="ladoE" type="number" min="0" step="1"></label>
+      </div>
+      <label class="check"><input id="edGrade" type="checkbox" checked> grade de peças do nível</label>
+      <span class="espaco"></span>
+      <button id="edDetectar" class="fino">Detectar bordas lisas</button>
+      <button id="edSem" class="fino">Sem corte</button>
+      <button id="edCancelar">Cancelar</button>
+      <button id="edAplicar" class="primario">Aplicar</button>
+    </div>
+    <p id="edDica">Arraste as alças ou o meio do retângulo, ou digite quantos px cortar de cada lado. Enter aplica, Esc cancela.</p>
+  </div>
+</dialog>
+
+<script type="module">
+import { CATALOGO, REACOES, RARIDADES } from '../src/jogo/catalogo.js';
+import { COM_ARTE } from '../src/arte/manifesto.js';
+import { gradeParaImagem } from '../src/jogo/curva.js';
+
+/** menor lado do corte, em px do original */
+const MIN = 32;
+/** o teste do catalogo aceita nomes de ate 22 letras */
+const NOME_MAX = 22;
+const NOME_REACAO = { girar: 'girar', chorar: 'chorar', pular: 'pular', susto: 'susto', balancar: 'balançar', dancar: 'dançar', pop: 'pop', brilhar: 'brilhar' };
+const NOME_RARIDADE = { comum: 'comum', raro: 'raro', epico: 'épico', lendario: 'lendário' };
+const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const LOG = 'curadoria-log';
+const $ = (/** @type {string} */ id) => /** @type {HTMLElement} */ (document.getElementById(id));
+const lim = (/** @type {number} */ v, /** @type {number} */ a, /** @type {number} */ b) => Math.min(b, Math.max(a, v));
+
+/**
+ * @typedef {{ x: number, y: number, w: number, h: number }} Corte
+ * @typedef {{ tipo: 'gato'|'novo', id: string, nome: { en: string, pt: string, es: string },
+ *   url: string, urls?: string[], img: HTMLImageElement|null, corte: Corte|null, salvo?: Corte|null, excluir?: boolean,
+ *   el?: HTMLElement, fala?: string, reacao?: string, raridade?: string, arquivo?: string, ext?: string, blob?: Blob }} Item
+ */
+/** @type {Item[]} na ordem da tela (os excluidos ficam no lugar ate salvar) */
+const itens = [];
+const ordemSalva = CATALOGO.map((g) => g.id).join();
+let sujo = false;
+/** @type {Item|null} */
+let arrastado = null;
+
+// ----------------------------------------------------------------- carga
+const origem = await fetch('../arte/origem.json').then((r) => r.json());
+for (const g of CATALOGO) {
+  const arte = COM_ARTE[g.id];
+  const corte = (origem[g.id] && origem[g.id].corte) || null;
+  // o original em arte/bruto (o do jogo pode ser o recorte, sempre .jpg)
+  const exts = ['jpg', 'png', 'webp', 'jpeg'];
+  const urls = arte ? exts.map((e) => `../arte/bruto/${g.id}/imagem.${e}`) : [];
+  itens.push({ tipo: 'gato', id: g.id, nome: g.nome, url: urls[0] || '', urls, img: null, corte, salvo: corte });
+}
+// imagens novas que a primeira versao da curadoria deixou pendentes
+const pendentes = await fetch('../arte/curadoria.json').then((r) => (r.ok ? r.json() : { novos: [] })).catch(() => ({ novos: [] }));
+for (const n of pendentes.novos || []) {
+  const blob = await fetch(`../arte/curadoria/${n.id}.${n.ext}`).then((r) => (r.ok ? r.blob() : null)).catch(() => null);
+  if (blob) itens.push({ tipo: 'novo', id: n.id, nome: n.nome, fala: n.fala || '', reacao: n.reacao || '', raridade: 'comum', arquivo: n.arquivo, ext: n.ext, blob, url: URL.createObjectURL(blob), img: null, corte: n.corte || null });
+}
+try {
+  const r = JSON.parse(sessionStorage.getItem(LOG) || 'null');
+  sessionStorage.removeItem(LOG);
+  if (r) {
+    registrar(r.feitos || [], false);
+    $('estado').textContent = `Salvo às ${r.hora}`;
+    $('estado').className = 'ok';
+  }
+} catch { /* ignora */ }
+
+/** carrega a imagem; com varias urls, fica com a primeira que existir @param {Item} it */
+function carregarImg(it) {
+  const fila = [...(it.urls || [it.url])].filter(Boolean);
+  return new Promise((ok) => {
+    const tentar = () => {
+      const url = fila.shift();
+      if (!url) return ok(null);
+      const img = new Image();
+      img.onload = () => { it.img = img; it.url = url; ok(null); };
+      img.onerror = tentar;
+      img.src = url;
+    };
+    tentar();
+  });
+}
+
+// ----------------------------------------------------------- utilidades
+/** @param {Item} it */
+const tamanho = (it) => ({ W: it.img ? it.img.naturalWidth : 0, H: it.img ? it.img.naturalHeight : 0 });
+/** o corte, ou a imagem inteira se nao houver @param {Item} it @returns {Corte} */
+function corteOuTudo(it) {
+  if (it.corte) return it.corte;
+  const { W, H } = tamanho(it);
+  return { x: 0, y: 0, w: W, h: H };
+}
+/** @param {Corte|null|undefined} a @param {Corte|null|undefined} b */
+const igual = (a, b) => (!a && !b) || (!!a && !!b && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h);
+const vivos = () => itens.filter((x) => !x.excluir);
+/** nivel no jogo depois de salvar (0 = sai do jogo) @param {Item} it */
+const nivelDe = (it) => (it.excluir ? 0 : vivos().indexOf(it) + 1);
+/** @param {Item} it */
+function gradeDe(it) {
+  const r = corteOuTudo(it);
+  return r.w && r.h ? gradeParaImagem(Math.max(1, nivelDe(it)), r.w / r.h) : { cols: 1, lins: 1 };
+}
+/** @param {string} t */
+function slug(t) {
+  const s = t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30).replace(/-+$/, '');
+  return s || 'gato';
+}
+/** @param {string} base @param {Item} [eu] */
+function idUnico(base, eu) {
+  const usados = new Set([...CATALOGO.map((g) => g.id), ...itens.filter((x) => x !== eu && x.tipo === 'novo').map((x) => x.id)]);
+  if (!usados.has(base)) return base;
+  for (let i = 2; ; i++) if (!usados.has(`${base}-${i}`)) return `${base}-${i}`;
+}
+/** reacao de cada gato que fica; as novas sem escolha ganham a menos usada (como o servidor) */
+function reacoesFinais() {
+  /** @type {Record<string, number>} */
+  const conta = Object.fromEntries(REACOES.map((r) => [r, 0]));
+  for (const it of vivos()) {
+    const r = it.tipo === 'gato' ? (CATALOGO.find((g) => g.id === it.id) || {}).reacao : it.reacao;
+    if (r) conta[r]++;
+  }
+  for (const it of vivos()) {
+    if (it.tipo !== 'novo' || it.reacao) continue;
+    const r = REACOES.reduce((a, b) => (conta[b] < conta[a] ? b : a));
+    conta[r]++;
+  }
+  return conta;
+}
+
+// ----------------------------------------------------------------- cartoes
+function renderTudo() {
+  const grade = $('gatos');
+  grade.textContent = '';
+  for (const it of itens) {
+    grade.appendChild(cartao(it));
+    desenharFoto(it);
+  }
+  atualizarTudo();
+}
+
+function atualizarTudo() {
+  for (const it of itens) atualizarInfo(it);
+  marcarSujo();
+}
+
+/** @param {Item} it */
+function cartao(it) {
+  const el = document.createElement('article');
+  el.className = 'cartao';
+  it.el = el;
+  // barra de cima: pega para arrastar, nivel e setas
+  const barra = document.createElement('div');
+  barra.className = 'barra';
+  barra.title = 'Arraste para mudar o nível';
+  const pega = document.createElement('span');
+  pega.className = 'pega';
+  pega.textContent = '⠿';
+  const rot = document.createElement('label');
+  rot.textContent = 'Nível';
+  const nivel = document.createElement('input');
+  nivel.type = 'number';
+  nivel.min = '1';
+  nivel.dataset.papel = 'nivel';
+  nivel.addEventListener('change', () => moverParaNivel(it, Math.round(Number(nivel.value) || 1)));
+  rot.appendChild(nivel);
+  const esp = document.createElement('span');
+  esp.className = 'espaco';
+  barra.append(pega, rot, esp, botao('◀', () => moverPasso(it, -1), 'Um nível antes'), botao('▶', () => moverPasso(it, 1), 'Um nível depois'));
+  // foto
+  const foto = document.createElement('button');
+  foto.className = 'foto';
+  foto.title = 'Cortar';
+  foto.appendChild(document.createElement('canvas'));
+  const selos = document.createElement('span');
+  selos.className = 'selos';
+  foto.appendChild(selos);
+  foto.addEventListener('click', () => abrirEditor(it));
+  const info = document.createElement('div');
+  info.className = 'info';
+  info.innerHTML = '<b class="nome"></b><small></small>';
+  const acoes = document.createElement('div');
+  acoes.className = 'acoes';
+  const sem = botao('Sem corte', () => { it.corte = null; desenharFoto(it); atualizarTudo(); });
+  sem.dataset.papel = 'sem';
+  acoes.append(botao('Cortar', () => abrirEditor(it)), sem);
+  if (it.tipo === 'gato') {
+    const ex = botao('Excluir', () => { it.excluir = !it.excluir; atualizarTudo(); });
+    ex.dataset.papel = 'excluir';
+    acoes.appendChild(ex);
+  } else {
+    acoes.appendChild(botao('Descartar', () => {
+      itens.splice(itens.indexOf(it), 1);
+      URL.revokeObjectURL(it.url);
+      el.remove();
+      atualizarTudo();
+    }, 'Tira esta imagem nova'));
+  }
+  el.append(barra, foto, info);
+  if (it.tipo === 'novo') el.appendChild(campos(it));
+  el.appendChild(acoes);
+  arrastavel(it, el);
+  return el;
+}
+
+/** @param {string} txt @param {() => void} fn @param {string} [titulo] */
+function botao(txt, fn, titulo) {
+  const b = document.createElement('button');
+  b.className = 'fino';
+  b.textContent = txt;
+  if (titulo) b.title = titulo;
+  b.addEventListener('click', fn);
+  return b;
+}
+
+/** campos da imagem nova @param {Item} it */
+function campos(it) {
+  const box = document.createElement('div');
+  box.className = 'campos';
+  /** @param {string} rotulo @param {string} valor @param {(v: string) => void} fn @param {{ largo?: boolean, obrigatorio?: boolean, max?: number, dica?: string }} [op] */
+  const campo = (rotulo, valor, fn, op = {}) => {
+    const l = document.createElement('label');
+    if (op.largo) l.className = 'largo';
+    l.textContent = rotulo;
+    const i = document.createElement('input');
+    i.value = valor;
+    if (op.obrigatorio) i.required = true;
+    if (op.max) i.maxLength = op.max;
+    if (op.dica) i.placeholder = op.dica;
+    i.addEventListener('input', () => { fn(i.value); atualizarTudo(); });
+    l.appendChild(i);
+    return l;
+  };
+  /** @param {string} rotulo @param {string} valor @param {[string, string][]} opcoes @param {(v: string) => void} fn */
+  const lista = (rotulo, valor, opcoes, fn) => {
+    const l = document.createElement('label');
+    l.textContent = rotulo;
+    const sel = document.createElement('select');
+    for (const [v, t] of opcoes) sel.add(new Option(t, v));
+    sel.value = valor;
+    sel.addEventListener('change', () => { fn(sel.value); atualizarTudo(); });
+    l.appendChild(sel);
+    return l;
+  };
+  box.append(
+    campo(`Título (inglês, até ${NOME_MAX}) *`, it.nome.en, (v) => { it.nome.en = v; it.id = idUnico(slug(v), it); }, { largo: true, obrigatorio: true, max: NOME_MAX }),
+    campo('Português', it.nome.pt, (v) => { it.nome.pt = v; }, { max: NOME_MAX, dica: 'igual ao inglês' }),
+    campo('Espanhol', it.nome.es, (v) => { it.nome.es = v; }, { max: NOME_MAX, dica: 'igual ao inglês' }),
+    campo('Fala', it.fala || '', (v) => { it.fala = v; }, { max: 20, dica: 'ex.: MEOW!' }),
+    lista('Reação', it.reacao || '', [['', 'automática'], ...REACOES.map((r) => /** @type {[string, string]} */ ([r, /** @type {Record<string, string>} */ (NOME_REACAO)[r] || r]))], (v) => { it.reacao = v; }),
+    lista('Raridade', it.raridade || 'comum', RARIDADES.map((r) => /** @type {[string, string]} */ ([r, /** @type {Record<string, string>} */ (NOME_RARIDADE)[r] || r])), (v) => { it.raridade = v; }),
+  );
+  return box;
+}
+
+/** @param {Item} it */
+function desenharFoto(it) {
+  const cv = /** @type {HTMLCanvasElement} */ (/** @type {HTMLElement} */ (it.el).querySelector('.foto canvas'));
+  const r = corteOuTudo(it);
+  if (!it.img || !r.w || !r.h) return;
+  const k = Math.min(500 / r.w, 340 / r.h, 1);
+  cv.width = Math.max(1, Math.round(r.w * k));
+  cv.height = Math.max(1, Math.round(r.h * k));
+  const c = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d'));
+  c.imageSmoothingQuality = 'high';
+  c.drawImage(it.img, r.x, r.y, r.w, r.h, 0, 0, cv.width, cv.height);
+}
+
+/** textos, selos e botoes do cartao @param {Item} it */
+function atualizarInfo(it) {
+  const el = /** @type {HTMLElement} */ (it.el);
+  const { W, H } = tamanho(it);
+  const r = corteOuTudo(it);
+  const n = nivelDe(it);
+  const g = gradeDe(it);
+  el.classList.toggle('cortado', !!it.corte);
+  el.classList.toggle('novo', it.tipo === 'novo');
+  el.classList.toggle('excluido', !!it.excluir);
+  const nivel = /** @type {HTMLInputElement} */ (el.querySelector('[data-papel=nivel]'));
+  nivel.value = n ? String(n) : '';
+  nivel.disabled = !n;
+  nivel.max = String(vivos().length);
+  const selos = /** @type {HTMLElement} */ (el.querySelector('.selos'));
+  selos.innerHTML = '';
+  /** @param {string} txt @param {string} [cls] */
+  const selo = (txt, cls = '') => selos.insertAdjacentHTML('beforeend', `<span class="selo ${cls}">${txt}</span>`);
+  if (it.tipo === 'novo') selo('novo', 'novo');
+  if (it.excluir) selo('sai do jogo', 'sai');
+  if (it.corte) selo('cortada');
+  const b = /** @type {HTMLElement} */ (el.querySelector('.info b'));
+  b.textContent = it.nome.en || 'sem título';
+  const medida = it.img ? (it.corte ? `${W}×${H} → ${r.w}×${r.h}` : `${W}×${H}`) : 'imagem não carregou';
+  /** @type {HTMLElement} */ (el.querySelector('.info small')).textContent = it.excluir ? `${medida} · sai do jogo ao salvar` : `${medida} · grade ${g.cols}x${g.lins}${it.tipo === 'novo' ? ` · id ${it.id}` : ''}`;
+  /** @type {HTMLElement} */ (el.querySelector('[data-papel=sem]')).hidden = !it.corte;
+  const ex = /** @type {HTMLElement|null} */ (el.querySelector('[data-papel=excluir]'));
+  if (ex) {
+    ex.textContent = it.excluir ? 'Manter' : 'Excluir';
+    ex.classList.toggle('perigo', !it.excluir);
+  }
+}
+
+function marcarSujo() {
+  const gatos = itens.filter((x) => x.tipo === 'gato');
+  sujo = itens.some((x) => x.tipo === 'novo') || gatos.some((x) => x.excluir || !igual(x.corte, x.salvo)) || gatos.map((x) => x.id).join() !== ordemSalva;
+  const e = $('estado');
+  if (sujo) {
+    e.textContent = 'Alterações não salvas';
+    e.className = 'sujo';
+  } else if (e.className === 'sujo') {
+    e.textContent = '';
+    e.className = '';
+  }
+  // o servidor recusa sem gato de alguma reacao e com menos gatos que reacoes
+  const conta = reacoesFinais();
+  const faltam = REACOES.filter((r) => !conta[r]);
+  const avisos = [];
+  if (faltam.length) avisos.push(`Nenhum gato ficaria com a reação ${faltam.map((r) => /** @type {Record<string, string>} */ (NOME_REACAO)[r] || r).join(', ')}: o salvamento vai recusar.`);
+  if (vivos().length < REACOES.length) avisos.push(`O jogo precisa de pelo menos ${REACOES.length} gatos.`);
+  if (itens.some((x) => x.tipo === 'novo' && !x.nome.en.trim())) avisos.push('Toda imagem nova precisa de um título em inglês.');
+  $('aviso').textContent = avisos.join(' ');
+  /** @type {HTMLButtonElement} */ ($('salvar')).disabled = !sujo || avisos.length > 0;
+  const novos = itens.filter((x) => x.tipo === 'novo').length;
+  const fora = itens.filter((x) => x.excluir).length;
+  $('resumo').textContent = `${vivos().length} níveis · ${itens.filter((x) => !x.excluir && x.corte).length} cortados${novos ? ` · ${novos} novos` : ''}${fora ? ` · ${fora} saindo` : ''}`;
+}
+
+// ------------------------------------------------------------------ ordem
+/** @param {Item} it @param {number} indice posicao em itens depois de tirar o item */
+function mover(it, indice) {
+  const de = itens.indexOf(it);
+  if (de < 0) return;
+  itens.splice(de, 1);
+  itens.splice(lim(indice, 0, itens.length), 0, it);
+  const grade = $('gatos');
+  for (const x of itens) grade.appendChild(/** @type {HTMLElement} */ (x.el));
+  atualizarTudo();
+}
+/** @param {Item} it @param {number} d */
+function moverPasso(it, d) {
+  mover(it, itens.indexOf(it) + d);
+}
+/** coloca o item no nivel n (contando so os que ficam) @param {Item} it @param {number} n */
+function moverParaNivel(it, n) {
+  const resto = itens.filter((x) => x !== it);
+  const outros = resto.filter((x) => !x.excluir);
+  const alvo = outros[lim(n, 1, outros.length + 1) - 1];
+  mover(it, alvo ? resto.indexOf(alvo) : resto.length);
+}
+
+/** arrastar e soltar entre os cartoes @param {Item} it @param {HTMLElement} el */
+function arrastavel(it, el) {
+  // campos de texto continuam selecionaveis: so arrasta quem pegou fora deles
+  el.addEventListener('pointerdown', (e) => { el.draggable = !(/** @type {HTMLElement} */ (e.target)).closest('input,select,textarea'); });
+  el.addEventListener('dragstart', (e) => {
+    arrastado = it;
+    el.classList.add('arrastando');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', it.id);
+    }
+  });
+  el.addEventListener('dragend', () => {
+    arrastado = null;
+    el.classList.remove('arrastando');
+    document.querySelectorAll('.cartao.antes,.cartao.depois').forEach((x) => x.classList.remove('antes', 'depois'));
+  });
+  el.addEventListener('dragover', (e) => {
+    if (!arrastado || arrastado === it) return;
+    e.preventDefault();
+    const r = el.getBoundingClientRect();
+    const depois = e.clientX > r.left + r.width / 2;
+    el.classList.toggle('depois', depois);
+    el.classList.toggle('antes', !depois);
+  });
+  el.addEventListener('dragleave', () => el.classList.remove('antes', 'depois'));
+  el.addEventListener('drop', (e) => {
+    if (!arrastado || arrastado === it) return;
+    e.preventDefault();
+    const depois = el.classList.contains('depois');
+    el.classList.remove('antes', 'depois');
+    const quem = arrastado;
+    const resto = itens.filter((x) => x !== quem);
+    mover(quem, resto.indexOf(it) + (depois ? 1 : 0));
+  });
+}
+
+// ------------------------------------------------------------- novas imagens
+const soltar = $('soltar');
+const arquivos = /** @type {HTMLInputElement} */ ($('arquivos'));
+const ehArquivo = (/** @type {DragEvent} */ e) => !arrastado && !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+arquivos.addEventListener('change', () => { adicionar([...(arquivos.files || [])]); arquivos.value = ''; });
+soltar.addEventListener('dragover', (e) => { if (!ehArquivo(e)) return; e.preventDefault(); soltar.classList.add('sobre'); });
+soltar.addEventListener('dragleave', () => soltar.classList.remove('sobre'));
+soltar.addEventListener('drop', (e) => {
+  if (!ehArquivo(e)) return;
+  e.preventDefault();
+  soltar.classList.remove('sobre');
+  adicionar([...((e.dataTransfer && e.dataTransfer.files) || [])]);
+});
+
+/** @param {File[]} lista */
+async function adicionar(lista) {
+  /** @type {Item|null} */
+  let ultimo = null;
+  for (const f of lista) {
+    const ext = /** @type {Record<string, string>} */ (EXT)[f.type];
+    if (!ext) {
+      registrar([`${f.name}: só JPG, PNG ou WebP`], true);
+      continue;
+    }
+    const titulo = f.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, NOME_MAX).trim();
+    /** @type {Item} */
+    const it = { tipo: 'novo', id: idUnico(slug(titulo)), nome: { en: titulo, pt: '', es: '' }, fala: '', reacao: '', raridade: 'comum', arquivo: f.name, ext, blob: f, url: URL.createObjectURL(f), img: null, corte: null };
+    await carregarImg(it);
+    if (!it.img) {
+      registrar([`${f.name}: não consegui abrir a imagem`], true);
+      continue;
+    }
+    itens.push(it);
+    $('gatos').appendChild(cartao(it));
+    desenharFoto(it);
+    ultimo = it;
+  }
+  atualizarTudo();
+  if (ultimo && ultimo.el) ultimo.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ------------------------------------------------------------------ editor
+const dialogo = /** @type {HTMLDialogElement} */ ($('editor'));
+const area = $('edArea');
+const caixa = $('edCaixa');
+const edImg = /** @type {HTMLImageElement} */ ($('edImg'));
+const lados = { t: /** @type {HTMLInputElement} */ ($('ladoT')), d: /** @type {HTMLInputElement} */ ($('ladoD')), b: /** @type {HTMLInputElement} */ ($('ladoB')), e: /** @type {HTMLInputElement} */ ($('ladoE')) };
+/** @type {{ item: Item|null, r: Corte, W: number, H: number, s: number }} */
+const ed = { item: null, r: { x: 0, y: 0, w: 1, h: 1 }, W: 1, H: 1, s: 1 };
+/** @type {null|{ modo: string, x0: number, y0: number, r0: Corte }} */
+let puxando = null;
+
+/** @param {Item} it */
+function abrirEditor(it) {
+  if (!it.img) return;
+  ed.item = it;
+  ed.W = it.img.naturalWidth;
+  ed.H = it.img.naturalHeight;
+  ed.r = { ...corteOuTudo(it) };
+  edImg.src = it.url;
+  const n = nivelDe(it);
+  $('edNome').textContent = `${n ? `Nível ${n}` : 'Sai do jogo'} · ${it.nome.en || 'Imagem nova'}`;
+  dialogo.showModal();
+  ajustarEditor();
+}
+
+function ajustarEditor() {
+  const maxW = Math.min(1200, window.innerWidth - 90);
+  const maxH = Math.max(200, window.innerHeight - 260);
+  ed.s = Math.min(maxW / ed.W, maxH / ed.H, 2);
+  area.style.width = `${Math.round(ed.W * ed.s)}px`;
+  area.style.height = `${Math.round(ed.H * ed.s)}px`;
+  desenharCaixa();
+}
+window.addEventListener('resize', () => { if (dialogo.open) ajustarEditor(); });
+
+/** @param {HTMLInputElement|null} [menos] campo que o usuario esta digitando */
+function desenharCaixa(menos = null) {
+  const { r, s, W, H } = ed;
+  caixa.style.left = `${r.x * s}px`;
+  caixa.style.top = `${r.y * s}px`;
+  caixa.style.width = `${r.w * s}px`;
+  caixa.style.height = `${r.h * s}px`;
+  const vals = { t: r.y, d: W - r.x - r.w, b: H - r.y - r.h, e: r.x };
+  for (const [k, inp] of Object.entries(lados)) if (inp !== menos) inp.value = String(/** @type {Record<string, number>} */ (vals)[k]);
+  const it = /** @type {Item} */ (ed.item);
+  const n = Math.max(1, nivelDe(it));
+  const g = gradeParaImagem(n, r.w / r.h);
+  caixa.style.setProperty('--c', String(g.cols));
+  caixa.style.setProperty('--l', String(g.lins));
+  const prop = (r.w / r.h).toFixed(2).replace('.', ',');
+  const corte = r.w === W && r.h === H ? 'sem corte' : `corte ${r.w}×${r.h}`;
+  $('edInfo').textContent = `original ${W}×${H} · ${corte} · ${prop}:1 · grade do nível ${n}: ${g.cols}x${g.lins} (${g.cols * g.lins} peças)`;
+}
+
+caixa.addEventListener('pointerdown', (e) => {
+  const alvo = /** @type {HTMLElement} */ (e.target);
+  puxando = { modo: alvo.dataset.alca || 'mover', x0: e.clientX, y0: e.clientY, r0: { ...ed.r } };
+  caixa.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+caixa.addEventListener('pointermove', (e) => {
+  if (!puxando) return;
+  ed.r = moverCorte(puxando.r0, puxando.modo, (e.clientX - puxando.x0) / ed.s, (e.clientY - puxando.y0) / ed.s, ed.W, ed.H);
+  desenharCaixa();
+});
+const soltarCaixa = () => { puxando = null; };
+caixa.addEventListener('pointerup', soltarCaixa);
+caixa.addEventListener('pointercancel', soltarCaixa);
+
+/**
+ * Corte depois de arrastar o meio ('mover') ou uma alca (n, s, l, o e cantos).
+ * @param {Corte} r @param {string} modo @param {number} dx @param {number} dy @param {number} W @param {number} H
+ * @returns {Corte}
+ */
+function moverCorte(r, modo, dx, dy, W, H) {
+  if (modo === 'mover') {
+    const x = Math.round(lim(r.x + dx, 0, W - r.w));
+    const y = Math.round(lim(r.y + dy, 0, H - r.h));
+    return { x, y, w: r.w, h: r.h };
+  }
+  let x1 = r.x;
+  let y1 = r.y;
+  let x2 = r.x + r.w;
+  let y2 = r.y + r.h;
+  if (modo.includes('o')) x1 = lim(r.x + dx, 0, x2 - MIN);
+  if (modo.includes('l')) x2 = lim(x2 + dx, r.x + MIN, W);
+  if (modo.includes('n')) y1 = lim(r.y + dy, 0, y2 - MIN);
+  if (modo.includes('s')) y2 = lim(y2 + dy, r.y + MIN, H);
+  x1 = Math.round(x1);
+  y1 = Math.round(y1);
+  return { x: x1, y: y1, w: Math.round(x2) - x1, h: Math.round(y2) - y1 };
+}
+
+for (const inp of Object.values(lados)) {
+  inp.addEventListener('input', () => {
+    const v = (/** @type {HTMLInputElement} */ i) => Math.max(0, Math.round(Number(i.value) || 0));
+    const { W, H } = ed;
+    const x = lim(v(lados.e), 0, W - MIN);
+    const y = lim(v(lados.t), 0, H - MIN);
+    const w = lim(W - x - v(lados.d), MIN, W - x);
+    const h = lim(H - y - v(lados.b), MIN, H - y);
+    ed.r = { x, y, w, h };
+    desenharCaixa(inp);
+  });
+}
+
+$('edGrade').addEventListener('change', (e) => caixa.classList.toggle('sem-grade', !(/** @type {HTMLInputElement} */ (e.target)).checked));
+$('edSem').addEventListener('click', () => { ed.r = { x: 0, y: 0, w: ed.W, h: ed.H }; desenharCaixa(); });
+$('edCancelar').addEventListener('click', () => dialogo.close());
+$('edAplicar').addEventListener('click', aplicarEditor);
+$('edDetectar').addEventListener('click', () => {
+  const it = /** @type {Item} */ (ed.item);
+  if (it.img) {
+    ed.r = detectarBordas(it.img);
+    desenharCaixa();
+  }
+});
+dialogo.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) {
+    e.preventDefault();
+    aplicarEditor();
+  }
+});
+
+function aplicarEditor() {
+  const it = /** @type {Item} */ (ed.item);
+  const r = ed.r;
+  it.corte = r.x === 0 && r.y === 0 && r.w === ed.W && r.h === ed.H ? null : { ...r };
+  dialogo.close();
+  desenharFoto(it);
+  atualizarTudo();
+}
+
+/**
+ * Bordas lisas (tarja preta, margem branca): anda de cada lado enquanto a
+ * linha ou coluna for quase de uma cor so e parecida com a do meio da borda.
+ * @param {HTMLImageElement} img
+ * @returns {Corte}
+ */
+function detectarBordas(img) {
+  const W = img.naturalWidth;
+  const H = img.naturalHeight;
+  const k = Math.min(1, 600 / Math.max(W, H));
+  const w = Math.max(1, Math.round(W * k));
+  const h = Math.max(1, Math.round(H * k));
+  const cv = document.createElement('canvas');
+  cv.width = w;
+  cv.height = h;
+  const c = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d', { willReadFrequently: true }));
+  c.drawImage(img, 0, 0, w, h);
+  const d = c.getImageData(0, 0, w, h).data;
+  const px = (/** @type {number} */ x, /** @type {number} */ y) => { const i = (y * w + x) * 4; return [d[i], d[i + 1], d[i + 2]]; };
+  const lisa = (/** @type {number[][]} */ cores, /** @type {number[]} */ ref) => {
+    let fora = 0;
+    for (const cor of cores) if (Math.abs(cor[0] - ref[0]) + Math.abs(cor[1] - ref[1]) + Math.abs(cor[2] - ref[2]) > 48) fora++;
+    return fora <= cores.length * 0.02;
+  };
+  const linha = (/** @type {number} */ y) => Array.from({ length: w }, (_, x) => px(x, y));
+  const coluna = (/** @type {number} */ x) => Array.from({ length: h }, (_, y) => px(x, y));
+  let t = 0;
+  while (t < h * 0.45 && lisa(linha(t), px(Math.floor(w / 2), 0))) t++;
+  let b = 0;
+  while (b < h * 0.45 && lisa(linha(h - 1 - b), px(Math.floor(w / 2), h - 1))) b++;
+  let e = 0;
+  while (e < w * 0.45 && lisa(coluna(e), px(0, Math.floor(h / 2)))) e++;
+  let dd = 0;
+  while (dd < w * 0.45 && lisa(coluna(w - 1 - dd), px(w - 1, Math.floor(h / 2)))) dd++;
+  // volta para px do original, com 1 px reduzido de folga para dentro
+  const fol = (/** @type {number} */ n) => (n ? Math.min(Math.ceil((n + 1) / k), Math.floor(Math.max(W, H) * 0.45)) : 0);
+  const x = fol(e);
+  const y = fol(t);
+  return { x, y, w: Math.max(MIN, W - x - fol(dd)), h: Math.max(MIN, H - y - fol(b)) };
+}
+
+/**
+ * Cor de destaque da imagem (fundo da pagina e moldura no jogo): a faixa de
+ * cor mais presente, com peso para as saturadas e pouco peso para branco e preto.
+ * @param {HTMLImageElement} img @param {Corte} r
+ */
+function corDominante(img, r) {
+  const cv = document.createElement('canvas');
+  cv.width = 48;
+  cv.height = 48;
+  const c = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d', { willReadFrequently: true }));
+  c.drawImage(img, r.x, r.y, r.w, r.h, 0, 0, 48, 48);
+  const d = c.getImageData(0, 0, 48, 48).data;
+  /** @type {Map<number, number[]>} faixa -> [peso, r, g, b] */
+  const faixas = new Map();
+  for (let i = 0; i < d.length; i += 4) {
+    const [R, G, B] = [d[i], d[i + 1], d[i + 2]];
+    const max = Math.max(R, G, B);
+    const min = Math.min(R, G, B);
+    let peso = 0.25 + (max - min) / 255;
+    if (max > 235 && max - min < 25) peso *= 0.2;
+    if (max < 30) peso *= 0.2;
+    const k = ((R >> 5) << 6) | ((G >> 5) << 3) | (B >> 5);
+    const f = faixas.get(k) || [0, 0, 0, 0];
+    f[0] += peso;
+    f[1] += R * peso;
+    f[2] += G * peso;
+    f[3] += B * peso;
+    faixas.set(k, f);
+  }
+  const [p, sr, sg, sb] = [...faixas.values()].reduce((a, b) => (b[0] > a[0] ? b : a));
+  const hex = (/** @type {number} */ v) => Math.round(v / p).toString(16).padStart(2, '0');
+  return `#${hex(sr)}${hex(sg)}${hex(sb)}`.toUpperCase();
+}
+
+// ------------------------------------------------------------------ salvar
+$('salvar').addEventListener('click', salvar);
+window.addEventListener('beforeunload', (e) => { if (sujo) e.preventDefault(); });
+
+/** @param {Blob} blob @returns {Promise<string>} */
+function base64(blob) {
+  return new Promise((ok, falha) => {
+    const fr = new FileReader();
+    fr.onload = () => ok(String(fr.result));
+    fr.onerror = () => falha(fr.error);
+    fr.readAsDataURL(blob);
+  });
+}
+/** @param {HTMLCanvasElement} cv @param {string} tipo @param {number} q @returns {Promise<Blob>} */
+function blob(cv, tipo, q) {
+  return new Promise((ok, falha) => cv.toBlob((b) => (b ? ok(b) : falha(new Error('toBlob'))), tipo, q));
+}
+
+/** Recorte (JPEG) e mini.webp de 256 px, codificados aqui no navegador. @param {Item} it */
+async function derivar(it) {
+  const img = /** @type {HTMLImageElement} */ (it.img);
+  const r = corteOuTudo(it);
+  let imagem = null;
+  if (it.corte) {
+    const cv = document.createElement('canvas');
+    cv.width = r.w;
+    cv.height = r.h;
+    /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d')).drawImage(img, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    imagem = await base64(await blob(cv, 'image/jpeg', 0.92));
+  }
+  const k = Math.min(1, 256 / Math.max(r.w, r.h));
+  const mv = document.createElement('canvas');
+  mv.width = Math.max(1, Math.round(r.w * k));
+  mv.height = Math.max(1, Math.round(r.h * k));
+  const mc = /** @type {CanvasRenderingContext2D} */ (mv.getContext('2d'));
+  mc.imageSmoothingQuality = 'high';
+  mc.drawImage(img, r.x, r.y, r.w, r.h, 0, 0, mv.width, mv.height);
+  return { imagem, mini: await base64(await blob(mv, 'image/webp', 0.75)) };
+}
+
+async function salvar() {
+  const btn = /** @type {HTMLButtonElement} */ ($('salvar'));
+  btn.disabled = true;
+  const e = $('estado');
+  e.textContent = 'Salvando…';
+  e.className = '';
+  try {
+    const ficam = vivos();
+    /** @type {Record<string, Corte|null>} */
+    const cortes = {};
+    /** @type {Record<string, { imagem: string|null, mini: string }>} */
+    const derivados = {};
+    const ordem = [];
+    for (const it of ficam) {
+      cortes[it.id] = it.corte;
+      if (it.tipo === 'novo' || !igual(it.corte, it.salvo)) derivados[it.id] = await derivar(it);
+      if (it.tipo === 'gato') {
+        ordem.push({ id: it.id });
+        continue;
+      }
+      ordem.push({
+        id: it.id, novo: true, nome: it.nome, fala: it.fala, reacao: it.reacao, raridade: it.raridade,
+        cor: corDominante(/** @type {HTMLImageElement} */ (it.img), corteOuTudo(it)),
+        arquivo: it.arquivo, ext: it.ext, dados: await base64(/** @type {Blob} */ (it.blob)),
+      });
+    }
+    const excluir = itens.filter((x) => x.excluir && x.tipo === 'gato').map((x) => x.id);
+    const r = await fetch('/__curadoria', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ordem, excluir, cortes, derivados }) })
+      .then((x) => x.json())
+      .catch((err) => ({ ok: false, feitos: [], erros: [`o servidor não respondeu (${err.message}); ele está rodando com npm run servir?`] }));
+    if (r.ok) {
+      // recarrega: catalogo, curva e manifesto mudaram no disco
+      try {
+        sessionStorage.setItem(LOG, JSON.stringify({ feitos: r.feitos, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) }));
+      } catch { /* ignora */ }
+      sujo = false;
+      location.reload();
+      return;
+    }
+    registrar(r.feitos || [], false);
+    registrar(r.erros || [], true);
+    e.textContent = 'Não salvou: veja abaixo';
+    e.className = 'erro';
+    btn.disabled = false;
+  } catch (err) {
+    registrar([`erro ao preparar as imagens: ${/** @type {Error} */ (err).message}`], true);
+    e.textContent = 'Não salvou';
+    e.className = 'erro';
+    btn.disabled = false;
+  }
+}
+
+/** @param {string[]} msgs @param {boolean} erro */
+function registrar(msgs, erro) {
+  const log = $('log');
+  for (const m of msgs) {
+    const li = document.createElement('li');
+    li.textContent = m;
+    if (erro) li.className = 'erro';
+    log.prepend(li);
+  }
+}
+
+// primeira pintura: depois de tudo definido acima
+await Promise.all(itens.map(carregarImg));
+renderTudo();
+
+// ganchos para teste automatico (ferramenta local; nada disso vai na build)
+/** @type {any} */ (window).__curadoria = { itens, salvar, abrirEditor, aplicarEditor, ed, detectarBordas, adicionar, desenharCaixa, mover, moverParaNivel, corDominante, atualizarTudo };
+</script>
+</body>
+</html>

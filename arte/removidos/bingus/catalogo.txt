@@ -1,0 +1,1 @@
+  g('bingus', 'Bingus', 'Bingus', 'Bingus', 'epico', 'balancar', '#C79AA6', 'BINGUS'),

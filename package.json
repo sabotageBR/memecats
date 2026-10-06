@@ -1,6 +1,6 @@
 {
   "name": "meme-cats-puzzle",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Meme Cats Puzzle: quebra-cabeca de troca com gatos de meme para a Poki (HTML + JavaScript puro).",
   "type": "module",

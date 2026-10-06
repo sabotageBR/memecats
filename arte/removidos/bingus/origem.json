@@ -1,0 +1,14 @@
+{
+  "tipo": "original",
+  "arquivo": "Bingus.jpg",
+  "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+  "data": "2026-10-01",
+  "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+  "sha256": "50eaf17d503a2f1f7b3cd1b8ac2366390c639be8ad122bb25e927cb9d994b390",
+  "corte": {
+    "x": 266,
+    "y": 0,
+    "w": 330,
+    "h": 540
+  }
+}

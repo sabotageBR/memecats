@@ -15,14 +15,18 @@
 //    Saida: o mesmo arquivo, copiado byte a byte (sem corte, sem recompressao,
 //    sem tirar texto), mais a mini.webp com a imagem inteira para o album.
 //    Registro: arquivo, fonte, data, edicoes (e sha256, conferido se houver).
+//    Com "corte" ({ x, y, w, h } em px do original, feito na curadoria,
+//    tools/curadoria.html), a saida e o recorte em imagem.jpg; o original
+//    em arte/bruto segue intacto.
 //
-// Uso: node tools/arte.mjs [--so=banana,crying]
+// Uso: node tools/arte.mjs [--so=crying,maxwell]
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { extname, join, relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { RAIZ } from './servir.mjs';
 import { CATALOGO } from '../src/jogo/catalogo.js';
+import { textoManifesto } from './manifesto.mjs';
 
 const TAM = 1024;
 const MINI = 256;
@@ -82,7 +86,7 @@ const originais = [];
 for (const g of CATALOGO) {
   const dir = join(bruto, g.id);
   if (!existsSync(dir)) continue;
-  const reg = /** @type {Record<string, string>} */ (origem[g.id] || {});
+  const reg = /** @type {Record<string, any>} */ (origem[g.id] || {});
   const original = reg.tipo === 'original';
   const semCampo = (original ? CAMPOS_ORIGINAL : CAMPOS_IA).filter((c) => !reg[c] || !String(reg[c]).trim());
   if (semCampo.length) {
@@ -101,17 +105,26 @@ for (const g of CATALOGO) {
     if (reg.sha256 && reg.sha256 !== sha256(fonte)) falhas.push(`${g.id}: imagem diferente do sha256 registrado (o arquivo foi alterado?)`);
     const m = medidas(fonte);
     if (m.girada) avisos.push(`${g.id}: a imagem tem orientacao EXIF; o navegador gira na hora de mostrar`);
-    const arq = `imagem${extname(fonte)}`;
+    const corte = reg.corte;
+    if (corte && !(['x', 'y', 'w', 'h'].every((k) => Number.isInteger(corte[k])) && corte.x >= 0 && corte.y >= 0 && corte.w >= 16 && corte.h >= 16 && corte.x + corte.w <= m.w && corte.y + corte.h <= m.h)) {
+      falhas.push(`${g.id}: corte fora da imagem (${m.w}x${m.h})`);
+      continue;
+    }
+    const arq = corte ? 'imagem.jpg' : `imagem${extname(fonte)}`;
     manifesto[g.id] = { arq, gato: false };
     originais.push(g.id);
     if (so.length && !so.includes(g.id)) continue;
     rmSync(saida, { recursive: true, force: true });
     mkdirSync(saida, { recursive: true });
     try {
-      copyFileSync(fonte, join(saida, arq));
-      if (sha256(fonte) !== sha256(join(saida, arq))) throw new Error('copia diferente do original');
-      // miniatura inteira (sem corte), com o lado maior em MINI
-      magick([fonte, '-auto-orient', '-strip', '-resize', `${MINI}x${MINI}>`, '-quality', '75', join(saida, 'mini.webp')]);
+      if (corte) {
+        magick([fonte, '-auto-orient', '-crop', `${corte.w}x${corte.h}+${corte.x}+${corte.y}`, '+repage', '-strip', '-quality', '92', join(saida, arq)]);
+      } else {
+        copyFileSync(fonte, join(saida, arq));
+        if (sha256(fonte) !== sha256(join(saida, arq))) throw new Error('copia diferente do original');
+      }
+      // miniatura da imagem do jogo inteira, com o lado maior em MINI
+      magick([join(saida, arq), '-auto-orient', '-strip', '-resize', `${MINI}x${MINI}>`, '-quality', '75', join(saida, 'mini.webp')]);
     } catch (e) {
       falhas.push(`${g.id}: ${/** @type {Error} */ (e).message}`);
     }
@@ -168,15 +181,7 @@ if (falhas.length) {
   process.exit(1);
 }
 
-const linhas = Object.entries(manifesto).map(([id, v]) => `  ${/^[a-z]+$/.test(id) ? id : `'${id}'`}: { arq: '${v.arq}', gato: ${v.gato} },`);
-writeFileSync(join(destino, 'manifesto.js'), `// GERADO por tools/arte.mjs: nao edite a mao.
-// Gatos com arte em src/arte/<id>/. Os outros usam o gato provisorio.
-// arq: imagem base (fundo.webp da arte de IA, ou a imagem original do meme
-// copiada sem alteracao). gato: true = tem a camada do gato recortada.
-
-/** @type {Readonly<Record<string, { arq: string, gato: boolean }>>} */
-export const COM_ARTE = Object.freeze({${linhas.length ? '\n' + linhas.join('\n') + '\n' : ''}});
-`);
+writeFileSync(join(destino, 'manifesto.js'), textoManifesto(manifesto));
 
 const tamanho = (/** @type {string} */ id, /** @type {string} */ nome) => {
   const p = join(destino, id, nome);

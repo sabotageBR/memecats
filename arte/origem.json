@@ -13,14 +13,6 @@
     "data": "AAAA-MM-DD (entrega)",
     "edicoes": "nenhuma: arquivo copiado byte a byte"
   },
-  "banana": {
-    "tipo": "original",
-    "arquivo": "Banana Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "4efd799d2a86c95c3ccd5c647748e9a46f018619d3de466ec36a02c355f3de19"
-  },
   "crying": {
     "tipo": "original",
     "arquivo": "Crying Cat.jpg",
@@ -34,16 +26,14 @@
     "arquivo": "Maxwell the Cat.jpg",
     "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
     "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "33f0f8db29886e3fb58bb0a4fad6ac35ba53d98286a24307873913de5f49eae5"
-  },
-  "side-eye": {
-    "tipo": "original",
-    "arquivo": "Side Eye Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "2e2bab68321365fb8e6640b1e558de171289d6412b0df46e8d54b1eb895330e3"
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "33f0f8db29886e3fb58bb0a4fad6ac35ba53d98286a24307873913de5f49eae5",
+    "corte": {
+      "x": 345,
+      "y": 24,
+      "w": 615,
+      "h": 642
+    }
   },
   "polite": {
     "tipo": "original",
@@ -66,40 +56,28 @@
     "arquivo": "Cat vs Cucumber.jpg",
     "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
     "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "912f587cb8058fffbad694d80b13d001b274c6b1230f9d9082877ecef4924ef0"
-  },
-  "bingus": {
-    "tipo": "original",
-    "arquivo": "Bingus.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "50eaf17d503a2f1f7b3cd1b8ac2366390c639be8ad122bb25e927cb9d994b390"
-  },
-  "grumpy": {
-    "tipo": "original",
-    "arquivo": "Grumpy Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "0246c504209ec9e5afdbd9e333fc23497b1335aaa35ef342ea1b0928cafb1783"
-  },
-  "nyan": {
-    "tipo": "original",
-    "arquivo": "Nyan Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "e8935e4c3229dad88a1c5a764559f651ce602a1cfd96a8a66bb62ea7fc84c4d9"
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "912f587cb8058fffbad694d80b13d001b274c6b1230f9d9082877ecef4924ef0",
+    "corte": {
+      "x": 0,
+      "y": 63,
+      "w": 640,
+      "h": 354
+    }
   },
   "bongo": {
     "tipo": "original",
     "arquivo": "Bongo Cat.jpg",
     "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
     "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "f58c721d809659e7206a2b798b9cf2514ccfb4ecfd005d39b0ba71a15f1517c3"
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "f58c721d809659e7206a2b798b9cf2514ccfb4ecfd005d39b0ba71a15f1517c3",
+    "corte": {
+      "x": 159,
+      "y": 121,
+      "w": 801,
+      "h": 599
+    }
   },
   "smudge": {
     "tipo": "original",
@@ -141,14 +119,6 @@
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "f2d38899c38bd1621f3b771bf5be2a43cb671e4c5d3957035d3d4a12570f5e2f"
   },
-  "keyboard": {
-    "tipo": "original",
-    "arquivo": "Keyboard Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "0faf995671e0459f9ffdbac763749f547afde27a1d4b05a19ce020b62b78c3f1"
-  },
   "longcat": {
     "tipo": "original",
     "arquivo": "Longcat.jpg",
@@ -156,22 +126,6 @@
     "data": "2026-10-01",
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "36d888919f75ef907a85e6b48ab16391f80913ccbad7f6fb735a231cd46b643b"
-  },
-  "heavy-breathing": {
-    "tipo": "original",
-    "arquivo": "Heavy Breathing Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "470c0829418680dd34ee9bcfa55c58305146506d5f56dc631ad9114e78346c3e"
-  },
-  "fits-sits": {
-    "tipo": "original",
-    "arquivo": "If I Fits I Sits.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "4788cbf5ba3f619c0da0707e7fe2d7ddbec3817065e7bb40921c6320e3c205ff"
   },
   "bread": {
     "tipo": "original",
@@ -194,16 +148,28 @@
     "arquivo": "Ceiling Cat.jpg",
     "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
     "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "2b12dd07195f0ac13d75e2f174047376abb072ab257eea08e9fa78039801216f"
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "2b12dd07195f0ac13d75e2f174047376abb072ab257eea08e9fa78039801216f",
+    "corte": {
+      "x": 358,
+      "y": 239,
+      "w": 832,
+      "h": 462
+    }
   },
   "driving": {
     "tipo": "original",
     "arquivo": "Driving Cat.jpg",
     "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
     "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "4e13b427d4e5e374b6e76be3a89caf80bfa8b9d78518a87ece402e868074b185"
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "4e13b427d4e5e374b6e76be3a89caf80bfa8b9d78518a87ece402e868074b185",
+    "corte": {
+      "x": 406,
+      "y": 0,
+      "w": 756,
+      "h": 878
+    }
   },
   "hipster": {
     "tipo": "original",
@@ -229,14 +195,6 @@
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "49b9a6c6b5b48429c33511bf152be32ae285ca8245e370b299510e6a8445da7f"
   },
-  "pusheen": {
-    "tipo": "original",
-    "arquivo": "Pusheen.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "291d7bc6a289f6c6ee5e0476682553aa3e6a5f7834c49232dac27060303a3153"
-  },
   "maru": {
     "tipo": "original",
     "arquivo": "Maru.jpg",
@@ -244,14 +202,6 @@
     "data": "2026-10-01",
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "61617784318f062bea6452d873ea7ba9e8f77e0e7b687de06ccd65b1bb863e5c"
-  },
-  "lil-bub": {
-    "tipo": "original",
-    "arquivo": "Lil Bub.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
-    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "aeab467a3b77ef288a7b8755c3721a7b484f39f8785983d81fad75d86e1f5530"
   },
   "monorail": {
     "tipo": "original",
@@ -277,12 +227,76 @@
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
     "sha256": "b6c5e0bc5dcea7a828653f0a49a7253c35a9668818a7fa961b37bb15539bf983"
   },
-  "german": {
+  "surprised": {
     "tipo": "original",
-    "arquivo": "German Cat.jpg",
-    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
-    "data": "2026-10-01",
+    "arquivo": "5309949419476610571.jpg",
+    "fonte": "imagem enviada pelo usuario na curadoria (tools/curadoria.html); autoria e licenca nao verificadas",
+    "data": "2026-10-06",
     "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
-    "sha256": "3fa6fbf2d76cb2cafa93b1ed0776a12ff332c127da0a0d5e9419bd3255c0453b"
+    "sha256": "4bcd5a1f22522af91d699cfe7a93384effe1bab9ac90a9b1e7c691feb67e8170"
+  },
+  "tuxedo": {
+    "tipo": "original",
+    "arquivo": "funny-cat-memes-7-20260103-768x1312.webp",
+    "fonte": "imagem enviada pelo usuario na curadoria (tools/curadoria.html); autoria e licenca nao verificadas",
+    "data": "2026-10-06",
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "3d493b947e0542d758d3c85c19d3c73dae9e4faa5c9fd114d1b83d70d1c077f0",
+    "corte": {
+      "x": 61,
+      "y": 274,
+      "w": 643,
+      "h": 961
+    }
+  },
+  "wig": {
+    "tipo": "original",
+    "arquivo": "images.jpeg",
+    "fonte": "imagem enviada pelo usuario na curadoria (tools/curadoria.html); autoria e licenca nao verificadas",
+    "data": "2026-10-06",
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "966dc48bf51559f3eba58a38ed7eb282d0c72865dd4fffbfc30f56b7f6e60b52",
+    "corte": {
+      "x": 0,
+      "y": 233,
+      "w": 415,
+      "h": 485
+    }
+  },
+  "serious": {
+    "tipo": "original",
+    "arquivo": "serious-cat-meme-unedited-version-from-2003-found-by-v0-2ce5u24r68we1.webp",
+    "fonte": "imagem enviada pelo usuario na curadoria (tools/curadoria.html); autoria e licenca nao verificadas",
+    "data": "2026-10-06",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "d3a94cc7b517db328c08dfb2a6c386be70d981382aeec0f8772305098958bb1a"
+  },
+  "ok": {
+    "tipo": "original",
+    "arquivo": "tst,small,507x507-pad,600x600,f8f8f8.webp",
+    "fonte": "imagem enviada pelo usuario na curadoria (tools/curadoria.html); autoria e licenca nao verificadas",
+    "data": "2026-10-06",
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "543f2e09a95b9f1b362259c257c862d66a4d0598cc82bc63086d0b554afa117c",
+    "corte": {
+      "x": 51,
+      "y": 54,
+      "w": 493,
+      "h": 485
+    }
+  },
+  "salad": {
+    "tipo": "original",
+    "arquivo": "woman-yelling-at-a-cat-dual-screen-wallpaper-1920x1080-v0-lk9bq6tkqw3h1.webp",
+    "fonte": "imagem enviada pelo usuario na curadoria (tools/curadoria.html); autoria e licenca nao verificadas",
+    "data": "2026-10-06",
+    "edicoes": "corte das bordas na curadoria (campo corte, em px do original); src/arte recebe o recorte em JPEG; o original em arte/bruto segue intacto",
+    "sha256": "a00b8fa3cadb42e28e8ab16f30816cb457ce61ba90a3b6da931ac983ac661388",
+    "corte": {
+      "x": 172,
+      "y": 60,
+      "w": 659,
+      "h": 547
+    }
   }
 }

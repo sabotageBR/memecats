@@ -1,0 +1,1 @@
+  g('german', 'German Cat', 'Gato Alemão', 'Gato Alemán', 'comum', 'dancar', '#9B8776'),

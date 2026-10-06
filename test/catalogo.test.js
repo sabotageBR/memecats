@@ -38,14 +38,32 @@ test('grade para imagem: na quadrada e a curva; na retangular, pecas mais quadra
   assert.deepEqual(gradeParaImagem(1, 0), grade(1));
 });
 
+test('grade com limite da tela: nunca passa do limite e, folgado, nao muda nada', () => {
+  for (const prop of [1, 1.33, 1.78, 0.56]) {
+    for (let n = 1; n <= 60; n++) {
+      // limite folgado (desktop) e a mesma grade de sempre
+      assert.deepEqual(gradeParaImagem(n, prop, { cols: 8, lins: 8 }), gradeParaImagem(n, prop), `${prop} nivel ${n}`);
+      for (const lim of [{ cols: 6, lins: 3 }, { cols: 4, lins: 6 }, { cols: 2, lins: 2 }]) {
+        const g = gradeParaImagem(n, prop, lim);
+        assert.ok(g.cols <= lim.cols && g.lins <= lim.lins && g.cols >= 2 && g.lins >= 2, `${prop} nivel ${n} ${JSON.stringify(lim)}: ${g.cols}x${g.lins}`);
+      }
+    }
+  }
+  // celular em pe com foto 16:9 (quadro ~352x198, peca de 56 px): 6x3 no maximo
+  assert.deepEqual(gradeParaImagem(20, 16 / 9, { cols: 352 / 56, lins: 198 / 56 }), { cols: 6, lins: 3 });
+  // limite estragado nao quebra a grade
+  assert.deepEqual(gradeParaImagem(9, 16 / 9, { cols: NaN, lins: Infinity }), gradeParaImagem(9, 16 / 9));
+});
+
 test('semente por nivel e estavel e distinta', () => {
   assert.equal(sementeDoNivel(7), sementeDoNivel(7));
   const vistas = new Set(Array.from({ length: 300 }, (_, i) => sementeDoNivel(i + 1)));
   assert.equal(vistas.size, 300);
 });
 
-test('catalogo: 34 gatos com id unico, nomes nos 3 idiomas, reacao e raridade validas', () => {
-  assert.equal(CATALOGO.length, 34);
+test('catalogo: gatos com id unico, nomes nos 3 idiomas, reacao e raridade validas', () => {
+  // o numero e a ordem mudam na curadoria (tools/curadoria.html); a curva acompanha
+  assert.ok(CATALOGO.length >= REACOES.length, `${CATALOGO.length} gatos`);
   const ids = new Set();
   for (const g of CATALOGO) {
     assert.match(g.id, /^[a-z0-9-]+$/);
@@ -62,13 +80,14 @@ test('catalogo: 34 gatos com id unico, nomes nos 3 idiomas, reacao e raridade va
 });
 
 test('gato do nivel: um por nivel e variantes depois do ultimo', () => {
-  assert.equal(gatoDoNivel(1).gato.id, 'banana');
-  assert.equal(gatoDoNivel(2).gato.id, 'crying');
-  assert.equal(gatoDoNivel(34).gato.id, 'german');
-  assert.equal(gatoDoNivel(34).variante, 0);
-  assert.equal(gatoDoNivel(35).gato.id, 'banana');
-  assert.equal(gatoDoNivel(35).variante, 1);
-  assert.equal(gatoDoNivel(83).variante, 2);
-  assert.equal(gatoPorId('nyan')?.raridade, 'lendario');
+  const n = CATALOGO.length;
+  assert.equal(gatoDoNivel(1).gato, CATALOGO[0]);
+  assert.equal(gatoDoNivel(2).gato, CATALOGO[1]);
+  assert.equal(gatoDoNivel(n).gato, CATALOGO[n - 1]);
+  assert.equal(gatoDoNivel(n).variante, 0);
+  assert.equal(gatoDoNivel(n + 1).gato, CATALOGO[0]);
+  assert.equal(gatoDoNivel(n + 1).variante, 1);
+  assert.equal(gatoDoNivel(2 * n + 1).variante, 2);
+  assert.equal(gatoPorId(CATALOGO[n - 1].id), CATALOGO[n - 1]);
   assert.equal(gatoPorId('nada'), null);
 });

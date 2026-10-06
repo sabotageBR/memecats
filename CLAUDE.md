@@ -8,13 +8,16 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
 - **Imagem e grade.** A imagem de um gato vira uma grade de peças. Ela aparece inteira por um instante e embaralha num desarranjo: nenhuma peça começa no lugar.
 - **Troca.** Arrastar uma peça até outra, ou tocar numa e depois na outra, troca as duas.
 - **Trava e cola.** Peça no lugar certo trava (clique, brilho, não mexe mais). Peças certas vizinhas perdem a borda entre si, e a imagem vai colando.
+- **Combo.** Cada troca que trava pelo menos uma peça é um acerto. A nota sobe um grau por acerto e nunca chega ao fim: é um tom de Shepard (`notaSemFim` em `audio.js`). A partir do 2º acerto seguido aparece o selo 2x, 3x… sobre a peça, com a cor mudando a cada dois acertos. Uma troca que não trava nada zera o combo. A dica também conta como acerto.
+- **PERFECT!** Nível montado sem nenhuma troca que não travou. O selo bate na tela e a revelação espera `PERFEITO_MS` (1 s). O `?revelar` não mostra o PERFECT.
 - **Revelação.** Montada a imagem, o gato ganha vida com a reação do meme (animação, fala e som) e entra no álbum. O botão ▶ leva ao próximo gato. Tocar no gato repete a reação.
   - **Contador:** quando a reação acaba, o ▶ conta 3, 2, 1 (número no botão e anel branco esvaziando) e passa sozinho. Se o jogador tocar no gato, abrir o álbum ou esconder a aba, o contador para e o ▶ só pulsa. Fica em `contar` e `pararContagem` (`main.js`), com `J.conta`.
 - **Sem derrota e sem cronômetro.**
   - **Espiar:** uma vez por nível, mostra a imagem inteira por 2 s.
+  - **Empacou:** depois de 3 trocas seguidas que não travam (`ERROS_AJUDA`), o Espiar recarrega e o botão da Dica pulsa até o próximo acerto. O vídeo continua só por escolha do jogador.
   - **Dica:** vídeo recompensado que coloca uma peça certa.
-- **Curva** (`src/jogo/curva.js`): 2x2 (tutorial com a mão), 3x3, 3x4, 4x4, 4x5, 5x5, 5x6 e 6x6. Do nível 35 em diante, os gatos voltam como variantes, com a grade girando entre 5x5, 5x6 e 6x6.
-- **Imagem retangular:** o quadro tem a proporção da imagem, sem corte. `gradeParaImagem` troca a grade da curva por uma com quase o mesmo número de peças e peças perto de quadradas (até 8x8). Uma foto 16:9 no nível 10, por exemplo, vira 5x3.
+- **Curva** (`src/jogo/curva.js`): 2x2 (tutorial com a mão), 3x3, 3x4, 4x4, 4x5, 5x5, 5x6 e 6x6. A curva termina no último gato (hoje o nível 29). Do nível 30 em diante, os gatos voltam como variantes, com a grade girando entre 5x5, 5x6 e 6x6.
+- **Imagem retangular:** o quadro tem a proporção da imagem, sem corte. `gradeParaImagem` troca a grade da curva por uma com quase o mesmo número de peças e peças perto de quadradas (até 8x8). Uma foto 16:9 no nível 10, por exemplo, vira 5x3. O `main.js` passa um limite de colunas e linhas para o lado menor da peça não ficar abaixo de `PECA_MIN` (56 px CSS). Só o celular em pé muda: do nível 12 em diante, a foto 16:9 fica em até 6x3 ou 6x4.
 - **Peças iguais** (`src/jogo/iguais.js`): áreas lisas da foto (parede branca, fundo verde, tarja preta) viram peças que ninguém distingue. Peças que parecem iguais formam uma classe e travam em qualquer célula da classe; parte delas já começa travada.
 
 ## Estrutura
@@ -22,17 +25,17 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
   - `tabuleiro.js`: `pos[celula] = peca`, `classe` opcional, trocar, travar, `dica`, `colada`;
   - `curva.js`: `grade` e `gradeParaImagem`;
   - `iguais.js`: classes de peças iguais a partir da imagem reduzida;
-  - `catalogo.js`: os 34 gatos, com nomes EN/PT/ES, raridade, `reacao`, `cor`, `olhos` e `fala`.
+  - `catalogo.js`: os 29 gatos, com nomes EN/PT/ES, raridade, `reacao`, `cor`, `olhos` e `fala`.
 - **`src/render/`:**
   - `layout.js`: geometria pura;
-  - `cena.js`: moldura, peças com tween e cola, seleção, arrasto, mão, espiada e revelação;
+  - `cena.js`: moldura, peças com tween e cola, seleção, arrasto, mão, espiada, selo de combo, PERFECT e revelação;
   - `palco.js`: as 8 reações. Cada pose é função pura do tempo, e as `BATIDAS` são os mesmos instantes que o som usa. Na foto sem recorte, a imagem inteira é a figurinha que faz a reação (pode sair do quadro);
   - `imagens.js`: arte pelo manifesto ou gato provisório, cache de até 3 gatos, miniaturas e a amostra para as peças iguais;
   - `provisorio.js`: o gato desenhado em canvas, só para quando a imagem falha ao carregar.
 - **`src/arte/`: arte processada**, que é **gerada** por `npm run arte`. O `manifesto.js` também é gerado; não edite à mão.
 - **`src/core/`:**
   - `poki.js`, cópia do colortrain, com fila e prazos;
-  - `audio.js`: síntese, incluindo a voz de gato por formantes e os sons das reações;
+  - `audio.js`: síntese, incluindo a voz de gato por formantes, a nota sem fim do combo e os sons das reações;
   - `armazenamento.js`, `depuracao.js` e `rng.js`.
 - **`src/ui/`:**
   - `album.js`: figurinhas por raridade e um palco que repete a reação a cada toque;
@@ -42,12 +45,11 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
   - `J.fase` percorre `carregando`, `entrando`, `jogando`, `revelando` e `trocando`;
   - `J.gen` sobe a cada `iniciarNivel`. Todo callback assíncrono (o `await` do anúncio e do carregamento de imagem, o `depois(ms, fn)`) guarda a geração e desiste se ela mudou. Timer ou `await` novo no `main.js` precisa da mesma guarda, senão vaza para o nível seguinte;
   - o save (chave `save`, `VERSAO_SAVE = 1`) guarda nível, mudo e gatos do álbum. Gato que sai do catálogo é filtrado na carga. Mudou o formato, suba a versão.
-- **Ordem dos gatos = ordem dos níveis:** `gatoDoNivel(n)` é `CATALOGO[n-1]`, e a última linha de `CURVA` fecha no total de gatos. Para tirar ou pôr um gato (ver o commit 562c2b6), mexa juntos em:
-  - `catalogo.js`;
-  - a última linha de `CURVA`;
-  - `arte/bruto/<id>/` e `arte/origem.json`, depois rode `npm run arte`;
-  - a contagem e os níveis em `test/catalogo.test.js`;
-  - os números deste arquivo e do `docs/arte/guia.md`.
+- **Ordem dos gatos = ordem dos níveis:** `gatoDoNivel(n)` é `CATALOGO[n-1]`, e a última linha de `CURVA` fecha no total de gatos. Para tirar, pôr ou reordenar gatos, use a curadoria (ver Arte). Ela mexe junto em:
+  - `catalogo.js`, `CURVA` e o manifesto;
+  - `arte/bruto/<id>/`, `arte/origem.json` e `arte/removidos/`.
+
+  Depois, atualize à mão os números deste arquivo e do `docs/arte/guia.md`. Os testes do catálogo não fixam a ordem nem o número de gatos.
 - **Arte:**
   - `arte/bruto/<id>/` recebe a entrada de cada gato;
   - `arte/origem.json` registra a origem de cada gato;
@@ -68,12 +70,18 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
 - **Toda proposta visual vai como imagem ou protótipo jogável**, nunca como descrição (preferência do usuário vinda do colortrain).
 
 ## Arte
-- **Estado atual (2026-10-01):** os 34 gatos usam as **imagens originais dos memes**, entregues pelo usuário em `~/Downloads/memes-cat-final` com o pedido de não alterar nada. Cada uma está em `arte/bruto/<id>/imagem.jpg`, registrada em `arte/origem.json` com `"tipo": "original"`, o nome do arquivo e o sha256. O jogo recebe o arquivo copiado byte a byte: sem corte, sem recompressão, sem tirar texto ou marca. A única coisa derivada é a `mini.webp` do álbum, com a imagem inteira.
+- **Estado atual (2026-10-06, depois da curadoria):** os 29 gatos usam as **imagens originais dos memes**. Há dois grupos:
+  - 23 vieram do usuário em `~/Downloads/memes-cat-final`;
+  - 6 foram enviadas na curadoria: `wig`, `salad`, `ok`, `tuxedo`, `surprised` e `serious`. O título delas foi dado por Claude a partir da imagem.
+
+  Cada uma está em `arte/bruto/<id>/imagem.(jpg|webp)`, registrada em `arte/origem.json` com `"tipo": "original"`, o nome do arquivo e o sha256.
+  - **Sem corte:** o jogo recebe o arquivo byte a byte.
+  - **Com corte:** 9 gatos foram cortados nas bordas (campo `corte`), e o jogo recebe o recorte em JPEG.
+  - **Excluídos na curadoria:** banana, bingus, fits-sits (a caixa da LEGO), german, grumpy, keyboard, lil-bub, nyan, omg, pusheen, side-eye e wiwiwi, guardados em `arte/removidos/`.
 - **Risco aberto, decisão do usuário:** essas imagens são fotos e artes de terceiros sem licença verificada.
   - A Poki recusa IP sem licença.
-  - Há marcas registradas: Grumpy Cat, Nyan Cat, Pusheen e Keyboard Cat.
-  - Há texto e logos de terceiros nas imagens: Know Your Meme (keyboard), LEGO (fits-sits) e Animal Planet (lil-bub).
-  - A German Cat traz a silhueta de um soldado batendo continência.
+  - As marcas registradas conhecidas (Grumpy Cat, Keyboard Cat, Nyan Cat e Pusheen) saíram na curadoria.
+  - Os logos de terceiros saíram com os gatos: a Know Your Meme (Keyboard Cat), a caixa da LEGO (If I Fits), o Animal Planet (Lil Bub) e a silhueta do soldado (German Cat). Fica a legenda do próprio meme no Should Buy a Boat Cat ("I should buy a boat.").
   - O `npm run arte` e o `npm run poki` avisam disso a cada execução.
   - Para publicar, troque pelas versões de IA (o caminho abaixo continua pronto) ou obtenha as licenças.
 - **Dois tipos de entrada** por gato em `arte/bruto/<id>/`, decididos pelo registro em `arte/origem.json`:
@@ -84,6 +92,13 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
   - gera os arquivos e a `mini.webp` de 256 px;
   - regenera o manifesto (`{ arq, gato }` por gato);
   - avisa se a carga inicial passar de 1,5 MB.
+- **Curadoria** (`tools/curadoria.html`, aberta pelo `npm run servir`): o usuário reordena os níveis (arrastando, com ◀ ▶ ou pelo número), corta bordas, exclui gatos e adiciona imagens novas. Nada muda até salvar.
+  - **Gravação:** pelo `POST /__curadoria` (`tools/curadoria.mjs`), sem ImageMagick, porque o navegador codifica as imagens. O servidor confere o pedido inteiro antes de gravar e recusa sem mexer em nada se faltar gato, sumir uma reação, um nome passar de 22 letras etc.
+  - **O que reescreve:** `src/jogo/catalogo.js` (as linhas existentes vão intactas, na ordem nova), `src/jogo/curva.js` (a última faixa termina no número de gatos) e `src/arte/manifesto.js` (via `tools/manifesto.mjs`, o mesmo do `arte.mjs`).
+  - **Corte:** o original em `arte/bruto/<id>/` fica intacto (o sha256 vale para ele). O campo `corte` (`{ x, y, w, h }`, em px do original) vai para `arte/origem.json`, e `src/arte/<id>/imagem.jpg` recebe o recorte (JPEG 92) com a `mini.webp` nova. Sem corte, volta a cópia byte a byte. O `npm run arte` aplica o mesmo corte com o `magick`, e o teste confere o tamanho.
+  - **Imagem nova:** entra direto no catálogo, na posição escolhida. Os bytes vão como vieram para `arte/bruto/<id>/imagem.<ext>`, com registro `"tipo": "original"`. O título vai em EN, PT e ES (até 22 letras), e a fala é opcional. A reação é escolhida ou, se for automática, fica com a menos usada. A raridade é escolhida (padrão `comum`). A `cor` sai da faixa de cor dominante da imagem, e `olhos` fica no padrão. Se a reação for chorar ou brilhar, meça os `olhos` à mão.
+  - **Exclusão:** nada é apagado. `arte/bruto/<id>/`, o registro e a linha do catálogo vão para `arte/removidos/<id>/`; `src/arte/<id>/` sai da build.
+  - **Testes:** os do catálogo não fixam mais a ordem nem o número de gatos; a curva acompanha.
 - **Sem arte no manifesto, ou se a imagem falhar, o jogo usa o gato provisório.**
 - Os campos `cor` e `olhos` do catálogo foram medidos nas imagens atuais. `olhos` só é usado nas reações chorar e brilhar. Trocou a imagem, meça de novo.
 
@@ -96,20 +111,23 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
 - **`commercialBreak`** só na passagem entre níveis (o ▶ ou o fim do contador), a partir da entrada do nível 4 (`NIVEIS_SEM_INTERVALO = 3`). O contador nunca chama `gameplayStart`: o próximo nível espera um toque real.
 - **Rewarded** (dica) só por escolha do jogador, e o prêmio só vale com `=== true`. Sem SDK, os botões de vídeo somem. No localhost o prêmio é liberado para testes.
 - **Som:** fica mudo antes do anúncio e quando a aba fica oculta.
-- **Telemetria:** os nomes ficam fixos, `measure('level', N, 'start'|'complete')`.
+- **Telemetria:** os nomes ficam fixos.
+  - `measure('level', N, 'start'|'complete')`: o funil de progresso.
+  - `measure('level', N, 'stuck')`: o jogador empacou no nível. Aparece em Other Events.
+  - `measure('button', 'peek'|'hint', 'visible'|'interact')`: botões de ajuda. Aparece em Interaction Events. `visible` sai no começo do nível (o da Dica só com SDK) e quando o Espiar recarrega.
 
 ## Comandos
-- `npm test` (`node --test test/*.test.js`, sem dependências): lógica, curva, catálogo, manifesto de arte, wrapper do SDK e estilo.
+- `npm test` (`node --test test/*.test.js`, sem dependências): lógica, curva, catálogo, manifesto de arte, wrapper do SDK, nota sem fim e estilo.
   - Um arquivo só: `node --test test/tabuleiro.test.js`.
   - Um teste só: `node --test --test-name-pattern="colada" test/tabuleiro.test.js`.
   - `test/apoio/` tem o SDK falso e o relógio falso que o `poki.test.js` usa.
-- `npm run servir`: servidor em http://127.0.0.1:5340/. Parâmetros locais:
+- `npm run servir`: servidor em http://127.0.0.1:5340/ (a curadoria fica em `/tools/curadoria.html`). Parâmetros locais:
   - `?nivel=12` e `?gato=crying`;
   - `?auto=300` (joga sozinho e passa de nível);
   - `?fixo`, `?semanuncio`, `?album`, `?todos` (álbum completo);
   - `?revelar` (resolve e mostra a reação).
-- `npm run arte`: processa `arte/bruto/` (ver acima). `--so=banana,crying` processa só esses.
-- A build tem cerca de 3 MB, quase tudo JPEG, que não comprime. A carga inicial é só o gato do nível e a pré-carga do próximo.
+- `npm run arte`: processa `arte/bruto/` (ver acima). `--so=crying,maxwell` processa só esses.
+- A build tem cerca de 3 MB, quase tudo JPEG e WebP, que não comprimem. A carga inicial é só o gato do nível e a pré-carga do próximo.
 - `npm run sdkcheck`: banco do SDK falso (`tools/sdkcheck.html`) nos cenários normal, recusa, bloqueado, pendente e lsquebrado.
 - `npm run poki`, na ordem:
   1. testes;

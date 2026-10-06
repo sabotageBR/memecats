@@ -1,0 +1,1 @@
+  g('grumpy', 'Grumpy Cat', 'Gato Rabugento', 'Gato Gruñón', 'lendario', 'susto', '#7FA3C8', 'NO.'),

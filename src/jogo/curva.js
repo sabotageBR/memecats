@@ -11,8 +11,8 @@ export const CURVA = Object.freeze([
   [10, 4, 4],
   [16, 4, 5],
   [24, 5, 5],
-  [33, 5, 6],
-  [34, 6, 6],
+  [27, 5, 6],
+  [29, 6, 6],
 ]);
 
 /** Depois do ultimo gato (variantes), a grade gira entre estes tamanhos. */
@@ -36,20 +36,28 @@ export function grade(nivel) {
 /**
  * Grade para uma imagem de proporcao w/h: perto do numero de pecas da curva,
  * com a peca o mais quadrada possivel. Na imagem quadrada, e a propria curva.
+ * O limite (de quem chama, pela tela) corta colunas e linhas para a peca nao
+ * ficar pequena demais: no celular em pe, foto 16:9 com muita peca vira peca
+ * de menos de 56 px, e la o abandono subiu no Player Fit Test.
  * @param {number} nivel
  * @param {number} proporcao largura / altura da imagem
+ * @param {{ cols: number, lins: number }} [limite] maximo de colunas e linhas
  * @returns {{ cols: number, lins: number }}
  */
-export function gradeParaImagem(nivel, proporcao) {
+export function gradeParaImagem(nivel, proporcao, limite) {
   const base = grade(nivel);
   const alvo = base.cols * base.lins;
   const prop = proporcao > 0 && Number.isFinite(proporcao) ? proporcao : 1;
+  const teto = (/** @type {number} */ v) => (Number.isFinite(v) ? Math.max(MIN, Math.min(MAX, Math.floor(v))) : MAX);
+  const maxC = limite ? teto(limite.cols) : MAX;
+  const maxL = limite ? teto(limite.lins) : MAX;
   /** quanto pior, maior: o numero de pecas pesa o dobro do formato da peca */
   const custo = (/** @type {number} */ c, /** @type {number} */ l) => 2 * Math.abs(Math.log((c * l) / alvo)) + Math.abs(Math.log((prop * l) / c));
-  let melhor = base;
-  let menor = custo(base.cols, base.lins);
-  for (let c = MIN; c <= MAX; c++) {
-    for (let l = MIN; l <= MAX; l++) {
+  const cabe = base.cols <= maxC && base.lins <= maxL;
+  let melhor = cabe ? base : { cols: MIN, lins: MIN };
+  let menor = cabe ? custo(base.cols, base.lins) : Infinity;
+  for (let c = MIN; c <= maxC; c++) {
+    for (let l = MIN; l <= maxL; l++) {
       const v = custo(c, l);
       if (v < menor - 1e-9) {
         melhor = { cols: c, lins: l };

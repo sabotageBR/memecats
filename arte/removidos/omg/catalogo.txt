@@ -1,0 +1,1 @@
+  g('omg', 'OMG Cat', 'Gato OMG', 'Gato OMG', 'raro', 'susto', '#7A8496', 'OMG!'),
