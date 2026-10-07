@@ -33,15 +33,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--placa);font-fami
 .btn.proximo svg{width:34px;height:34px;stroke:none;margin-left:4px}
 .btn.proximo.pulsar{animation:pulsar .9s ease-in-out infinite}
 @keyframes entraBotao{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
-/* contador 3, 2, 1 do proximo: o numero no lugar da seta e o anel branco
-   esvaziando em 3 s (circunferencia de r=38: 238.8) */
+/* contador 2, 1 do proximo: o numero no lugar da seta e o anel branco
+   esvaziando em 2 s (circunferencia de r=38: 238.8) */
 .btn.proximo .anel{position:absolute;left:-4px;top:-4px;width:calc(100% + 8px);height:calc(100% + 8px);margin:0;display:none;overflow:visible;transform:rotate(-90deg)}
 .btn.proximo .anel circle{fill:none;stroke:#fff;stroke-width:4;stroke-dasharray:238.8;stroke-dashoffset:0}
 .btn.proximo .regressiva{display:none;font:700 36px/1 "Fredoka",system-ui,sans-serif;color:#fff}
 .btn.proximo.contando{box-shadow:0 0 0 4px rgba(255,255,255,.35),var(--sombra-forte)}
 .btn.proximo.contando svg:not(.anel){display:none}
 .btn.proximo.contando .anel,.btn.proximo.contando .regressiva{display:block}
-.btn.proximo.contando .anel circle{animation:esvazia 3s linear forwards}
+.btn.proximo.contando .anel circle{animation:esvazia 2s linear forwards}
 .btn.proximo .regressiva.pop{animation:conta .4s cubic-bezier(.3,1.6,.5,1)}
 @keyframes esvazia{to{stroke-dashoffset:238.8}}
 @keyframes conta{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}

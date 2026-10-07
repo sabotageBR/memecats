@@ -11,12 +11,16 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
 - **Combo.** Cada troca que trava pelo menos uma peça é um acerto. A nota sobe um grau por acerto e nunca chega ao fim: é um tom de Shepard (`notaSemFim` em `audio.js`). A partir do 2º acerto seguido aparece o selo 2x, 3x… sobre a peça, com a cor mudando a cada dois acertos. Uma troca que não trava nada zera o combo. A dica também conta como acerto.
 - **PERFECT!** Nível montado sem nenhuma troca que não travou. O selo bate na tela e a revelação espera `PERFEITO_MS` (1 s). O `?revelar` não mostra o PERFECT.
 - **Revelação.** Montada a imagem, o gato ganha vida com a reação do meme (animação, fala e som) e entra no álbum. O botão ▶ leva ao próximo gato. Tocar no gato repete a reação.
-  - **Contador:** quando a reação acaba, o ▶ conta 3, 2, 1 (número no botão e anel branco esvaziando) e passa sozinho. Se o jogador tocar no gato, abrir o álbum ou esconder a aba, o contador para e o ▶ só pulsa. Fica em `contar` e `pararContagem` (`main.js`), com `J.conta`.
+  - **Contador:** quando a reação acaba, o ▶ conta 2, 1 em 2 s (número no botão e anel branco esvaziando) e passa sozinho. Se o jogador tocar no gato, abrir o álbum ou esconder a aba, o contador para e o ▶ só pulsa. Fica em `contar` e `pararContagem` (`main.js`), com `J.conta`.
 - **Sem derrota e sem cronômetro.**
   - **Espiar:** uma vez por nível, mostra a imagem inteira por 2 s.
-  - **Empacou:** depois de 3 trocas seguidas que não travam (`ERROS_AJUDA`), o Espiar recarrega e o botão da Dica pulsa até o próximo acerto. O vídeo continua só por escolha do jogador.
-  - **Dica:** vídeo recompensado que coloca uma peça certa.
-- **Curva** (`src/jogo/curva.js`): 2x2 (tutorial com a mão), 3x3, 3x4, 4x4, 4x5, 5x5, 5x6 e 6x6. A curva termina no último gato (hoje o nível 29). Do nível 30 em diante, os gatos voltam como variantes, com a grade girando entre 5x5, 5x6 e 6x6.
+  - **Empacou:** conta depois de 3 trocas seguidas que não travam (`ERROS_AJUDA`).
+    - Na 1ª vez do nível, o Espiar recarrega e pulsa.
+    - Da 2ª vez em diante, a mão do tutorial mostra de graça uma troca certa, e a Dica pulsa.
+    - O pulso para no próximo acerto (o do Espiar também quando ele é usado). O vídeo continua só por escolha do jogador.
+    - Veio do Player Fit da 0.2.2: de 23% a 62% dos jogadores empacavam por nível, e só 10% usavam o Espiar.
+  - **Dica:** vídeo recompensado que coloca 3 peças certas (`PECAS_DICA`). A mão aponta a 1ª troca, e o jogo faz as 3 em sequência, somando no combo.
+- **Curva** (`src/jogo/curva.js`): 2x2 (tutorial com a mão), 3x3, 3x4, 4x4, 4x5, 5x5, 5x6 e 6x6. O 4x4 só começa no nível 9: no Player Fit, a estreia do 4x4 derrubava cerca de 30%. A curva termina no último gato (hoje o nível 30). Do nível 31 em diante, os gatos voltam como variantes, com a grade girando entre 5x5, 5x6 e 6x6.
 - **Imagem retangular:** o quadro tem a proporção da imagem, sem corte. `gradeParaImagem` troca a grade da curva por uma com quase o mesmo número de peças e peças perto de quadradas (até 8x8). Uma foto 16:9 no nível 10, por exemplo, vira 5x3. O `main.js` passa um limite de colunas e linhas para o lado menor da peça não ficar abaixo de `PECA_MIN` (56 px CSS). Só o celular em pé muda: do nível 12 em diante, a foto 16:9 fica em até 6x3 ou 6x4.
 - **Peças iguais** (`src/jogo/iguais.js`): áreas lisas da foto (parede branca, fundo verde, tarja preta) viram peças que ninguém distingue. Peças que parecem iguais formam uma classe e travam em qualquer célula da classe; parte delas já começa travada.
 
@@ -25,7 +29,7 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
   - `tabuleiro.js`: `pos[celula] = peca`, `classe` opcional, trocar, travar, `dica`, `colada`;
   - `curva.js`: `grade` e `gradeParaImagem`;
   - `iguais.js`: classes de peças iguais a partir da imagem reduzida;
-  - `catalogo.js`: os 29 gatos, com nomes EN/PT/ES, raridade, `reacao`, `cor`, `olhos` e `fala`.
+  - `catalogo.js`: os 30 gatos, com nomes EN/PT/ES, raridade, `reacao`, `cor`, `olhos` e `fala`.
 - **`src/render/`:**
   - `layout.js`: geometria pura;
   - `cena.js`: moldura, peças com tween e cola, seleção, arrasto, mão, espiada, selo de combo, PERFECT e revelação;
@@ -50,6 +54,13 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
   - `arte/bruto/<id>/`, `arte/origem.json` e `arte/removidos/`.
 
   Depois, atualize à mão os números deste arquivo e do `docs/arte/guia.md`. Os testes do catálogo não fixam a ordem nem o número de gatos.
+
+  A curadoria não restaura gato excluído. Para trazer um de volta, faça à mão o caminho inverso: a imagem volta para `arte/bruto/<id>/`, o registro para `arte/origem.json` e a linha para o catálogo, e depois rode `npm run arte -- --so=<id>`.
+
+  **Critério da ordem (0.2.3, a partir do Player Fit):** os níveis 3 a 8 decidem os 3 minutos.
+  - Ali entram os memes famosos com imagem de alto contraste e regiões distintas.
+  - Foto escura ou pouco conhecida vai para depois. Com o Smudge no nível 4, 31% saíam.
+  - O banana fica no nível 3, e não no 1. A imagem tem dois painéis, e no 2x2 a troca das metades deixaria a imagem embaralhada com cara de montada.
 - **Arte:**
   - `arte/bruto/<id>/` recebe a entrada de cada gato;
   - `arte/origem.json` registra a origem de cada gato;
@@ -70,14 +81,14 @@ O plano aprovado fica em `~/.claude/plans/leia-esse-artigo-e-hidden-swing.md`.
 - **Toda proposta visual vai como imagem ou protótipo jogável**, nunca como descrição (preferência do usuário vinda do colortrain).
 
 ## Arte
-- **Estado atual (2026-10-06, depois da curadoria):** os 29 gatos usam as **imagens originais dos memes**. Há dois grupos:
-  - 23 vieram do usuário em `~/Downloads/memes-cat-final`;
+- **Estado atual (2026-10-06, depois da curadoria e da 0.2.3):** os 30 gatos usam as **imagens originais dos memes**. Há dois grupos:
+  - 24 vieram do usuário em `~/Downloads/memes-cat-final`. O banana saiu na curadoria e voltou na 0.2.3, com o registro original;
   - 6 foram enviadas na curadoria: `wig`, `salad`, `ok`, `tuxedo`, `surprised` e `serious`. O título delas foi dado por Claude a partir da imagem.
 
   Cada uma está em `arte/bruto/<id>/imagem.(jpg|webp)`, registrada em `arte/origem.json` com `"tipo": "original"`, o nome do arquivo e o sha256.
   - **Sem corte:** o jogo recebe o arquivo byte a byte.
   - **Com corte:** 9 gatos foram cortados nas bordas (campo `corte`), e o jogo recebe o recorte em JPEG.
-  - **Excluídos na curadoria:** banana, bingus, fits-sits (a caixa da LEGO), german, grumpy, keyboard, lil-bub, nyan, omg, pusheen, side-eye e wiwiwi, guardados em `arte/removidos/`.
+  - **Excluídos na curadoria:** bingus, fits-sits (a caixa da LEGO), german, grumpy, keyboard, lil-bub, nyan, omg, pusheen, side-eye e wiwiwi, guardados em `arte/removidos/`.
 - **Risco aberto, decisão do usuário:** essas imagens são fotos e artes de terceiros sem licença verificada.
   - A Poki recusa IP sem licença.
   - As marcas registradas conhecidas (Grumpy Cat, Keyboard Cat, Nyan Cat e Pusheen) saíram na curadoria.

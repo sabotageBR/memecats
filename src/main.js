@@ -39,8 +39,8 @@ const NIVEIS_SEM_INTERVALO = 3;
 const ESPIADA_MS = 2000;
 /** O botao de proximo aparece depois que a reacao comeca. */
 const PROXIMO_MS = 900;
-/** Depois da reacao, o botao de proximo conta 3, 2, 1 e passa sozinho. */
-const CONTAGEM = 3;
+/** Depois da reacao, o botao de proximo conta 2, 1 e passa sozinho. */
+const CONTAGEM = 2;
 /** Pixels por peca na amostra que acha pecas iguais (jogo/iguais.js). */
 const AMOSTRA = 24;
 /**
@@ -49,8 +49,14 @@ const AMOSTRA = 24;
  * mais os niveis grandes, com pecas de ~58x50 px.
  */
 const PECA_MIN = 56;
-/** Trocas seguidas sem travar que contam como "empacou": o Espiar recarrega e a Dica pulsa. */
+/**
+ * Trocas seguidas sem travar que contam como "empacou". Na 1a vez do nivel o
+ * Espiar recarrega e pulsa; da 2a em diante a mao mostra uma troca certa e a
+ * Dica pulsa.
+ */
 const ERROS_AJUDA = 3;
+/** Pecas que a Dica (video) coloca. */
+const PECAS_DICA = 3;
 
 const VERSAO_SAVE = 1;
 const salvo = armazem.ler('save', null);
@@ -88,8 +94,8 @@ const J = {
   errou: false,
   /** trocas seguidas que nao travaram (ERROS_AJUDA = empacou) */
   erros: 0,
-  /** o "empacou" deste nivel ja foi medido */
-  empacou: false,
+  /** vezes que o jogador empacou neste nivel (a 1a e medida) */
+  empaques: 0,
   /** contador do proximo: 0 nao comecou, -1 parado pelo jogador, >0 id do que esta correndo */
   conta: 0,
   /** ms entre trocas do jogador automatico (0 = desligado) */
@@ -234,8 +240,9 @@ async function iniciarNivel(mostrar = true) {
   J.seq = 0;
   J.errou = false;
   J.erros = 0;
-  J.empacou = false;
+  J.empaques = 0;
   $('bDica').classList.remove('pulsar');
+  $('bEspiar').classList.remove('pulsar');
   aplicarCor(gato);
   atualizarHud(true);
   cena.configurar(J.tab, medirLayout(), im, gato);
@@ -263,19 +270,25 @@ async function iniciarNivel(mostrar = true) {
   });
 }
 
-/** O jogador empacou: o Espiar recarrega e a Dica pulsa (o video segue so por escolha). */
+/**
+ * O jogador empacou. Na 1a vez do nivel, o Espiar (gratis) recarrega e pulsa;
+ * da 2a em diante, a mao mostra uma troca certa e a Dica pulsa (o video segue
+ * so por escolha).
+ */
 function ajudar() {
   J.erros = 0;
-  if (!J.empacou) {
-    J.empacou = true;
+  if (++J.empaques === 1) {
     poki.measure('level', String(J.nivel), 'stuck');
+    if (J.espiou) {
+      J.espiou = false;
+      atualizarHud();
+      estalar($('bEspiar'));
+      poki.measure('button', 'peek', 'visible');
+    }
+    $('bEspiar').classList.add('pulsar');
+    return;
   }
-  if (J.espiou) {
-    J.espiou = false;
-    atualizarHud();
-    estalar($('bEspiar'));
-    poki.measure('button', 'peek', 'visible');
-  }
+  mostrarMao();
   $('bDica').classList.add('pulsar');
 }
 
@@ -305,6 +318,7 @@ function executar(a, b) {
       J.seq++;
       J.erros = 0;
       $('bDica').classList.remove('pulsar');
+      $('bEspiar').classList.remove('pulsar');
       cena.travou(travou, agora());
       audio.travar(J.seq, travou.length > 1);
       if (J.seq >= 2) cena.combo(J.seq, travou, agora());
@@ -373,7 +387,7 @@ function revelarGato(novo) {
 let contagens = 0;
 
 /**
- * O botao de proximo conta 3, 2, 1 e passa de nivel sozinho. Nao comeca se o
+ * O botao de proximo conta 2, 1 e passa de nivel sozinho. Nao comeca se o
  * jogador ja mexeu no gato (ou abriu o album, ou saiu da aba): ai o botao so
  * pulsa, como antes.
  */
@@ -454,6 +468,7 @@ async function recompensa() {
 function espiar() {
   if (J.fase !== 'jogando' || J.espiou) return;
   J.espiou = true;
+  $('bEspiar').classList.remove('pulsar');
   cena.espiar(agora(), ESPIADA_MS);
   audio.espiar();
   poki.measure('button', 'peek', 'interact');
@@ -472,11 +487,15 @@ async function dicaComVideo() {
   J.sel = null;
   cena.selecionar(null);
   cena.mostrarMao({ de: d.a, para: d.b }, agora());
-  depois(900, () => {
+  // a mao aponta a 1a troca; depois o jogo faz PECAS_DICA trocas certas seguidas
+  const passo = (/** @type {number} */ falta, /** @type {number} */ ms) => depois(ms, () => {
     if (J.fase !== 'jogando' || !J.tab) return;
     const d2 = dica(J.tab);
-    if (d2) executar(d2.a, d2.b);
+    if (!d2) return;
+    executar(d2.a, d2.b);
+    if (falta > 1) passo(falta - 1, 500);
   });
+  passo(PECAS_DICA, 900);
 }
 
 const album = criarAlbum({

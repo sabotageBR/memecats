@@ -13,6 +13,14 @@
     "data": "AAAA-MM-DD (entrega)",
     "edicoes": "nenhuma: arquivo copiado byte a byte"
   },
+  "banana": {
+    "tipo": "original",
+    "arquivo": "Banana Cat.jpg",
+    "fonte": "imagem do meme entregue pelo usuario em ~/Downloads/memes-cat-final; autoria e licenca nao verificadas",
+    "data": "2026-10-01",
+    "edicoes": "nenhuma: arquivo copiado byte a byte, a pedido do usuario",
+    "sha256": "4efd799d2a86c95c3ccd5c647748e9a46f018619d3de466ec36a02c355f3de19"
+  },
   "crying": {
     "tipo": "original",
     "arquivo": "Crying Cat.jpg",

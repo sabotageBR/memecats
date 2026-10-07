@@ -2,7 +2,7 @@
 
 Este guia é o caminho para trocar as imagens atuais por arte própria, publicável.
 
-> **Estado em 2026-10-06 (depois da curadoria):** os 29 gatos do catálogo (`src/jogo/catalogo.js`) usam as imagens originais dos memes, entregues pelo usuário e sem alteração (`"tipo": "original"` em `arte/origem.json`; ver a seção Arte do `CLAUDE.md`). Para a Poki, cada uma precisa ser trocada por arte de IA com edição, como descrito abaixo, ou ter licença. Os prompts em [`prompts.md`](prompts.md) foram escritos para um catálogo anterior, de 30 gatos. O do banana, o único que coincidia, saiu na curadoria; os gatos atuais pedem um prompt novo no mesmo modelo.
+> **Estado em 2026-10-06 (depois da curadoria e da 0.2.3):** os 30 gatos do catálogo (`src/jogo/catalogo.js`) usam as imagens originais dos memes, entregues pelo usuário e sem alteração (`"tipo": "original"` em `arte/origem.json`; ver a seção Arte do `CLAUDE.md`). Para a Poki, cada uma precisa ser trocada por arte de IA com edição, como descrito abaixo, ou ter licença. Os prompts em [`prompts.md`](prompts.md) foram escritos para um catálogo anterior, de 30 gatos. O do banana é o único que coincide: ele saiu na curadoria e voltou na 0.2.3, então esse prompt vale de novo. Os outros gatos atuais pedem um prompt novo no mesmo modelo.
 
 ## O que entregar por gato
 
